@@ -1,0 +1,611 @@
+/* ---------- STYLES.CSS LOGIN ---------- */
+
+/* ---------- VARIABLES GLOBALES ---------- */
+:root {
+    --primary-color: #006b3f;
+    --primary-dark: #004d2e;
+    --accent-green: #b4d334;
+    --text-main: #1f2937;
+    --text-muted: #6b7280;
+    --bg-light: #f4f7f6; /* Ligeramente gris para que resalte la caja blanca */
+    --border-color: #e5e7eb;
+    --shadow-md: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 20px 40px -5px rgba(0, 0, 0, 0.08);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', system-ui, sans-serif;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: var(--bg-light);
+    color: var(--text-main);
+}
+
+/* Ocultar scrollbars en todos los navegadores */
+::-webkit-scrollbar {
+    display: none;
+}
+* {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+/* ---------- ESTRUCTURA PRINCIPAL ---------- */
+.login-layout {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background-color: var(--bg-light);
+}
+
+/* ---------- PANEL IZQUIERDO (BRANDING) ---------- */
+.brand-panel {
+    flex: 0 0 45%; 
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    color: white;
+    z-index: 2;
+    height: 100vh;
+}
+
+.brand-panel::before {
+    content: '';
+    position: absolute;
+    /* Valores ajustados para hacer la curva más pronunciada y suave */
+    top: -20%;
+    bottom: -20%;
+    left: 0;
+    right: 0;
+    background-image: linear-gradient(135deg, rgba(0,77,46,0.92), rgba(0,107,63,0.88)), url('../img/toop.png');
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    border-radius: 0 50% 50% 0 / 0 50% 50% 0; /* Arco perfecto */
+    z-index: -1;
+    box-shadow: 15px 0 0 0 var(--accent-green);
+}
+
+.brand-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    z-index: 2;
+}
+
+.logo-img {
+    max-width: 160px; /* Un poco más grande para mejor proporción */
+    height: auto;
+    margin-bottom: 1.2rem;
+}
+
+.brand-title {
+    font-size: 1.4rem;
+    font-weight: 500;
+    line-height: 1.3;
+    text-align: center;
+}
+
+.brand-divider {
+    width: 70%;
+    max-width: 250px;
+    height: 1px;
+    background: linear-gradient(to right, transparent 0%, rgba(255,255,255,0.5) 50%, transparent 100%);
+    margin: 1.2rem auto;
+    opacity: 0.9;
+    border: none;
+}
+
+.brand-motto {
+    text-align: center;
+    font-size: 0.9rem;
+    font-weight: 400;
+    opacity: 0.95;
+    margin-bottom: 2rem;
+}
+
+.info-card {
+    background: rgba(255, 255, 255, 0.95);
+    color: var(--text-main);
+    padding: 1.2rem;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: 85%;
+    max-width: 320px;
+    box-shadow: var(--shadow-md);
+    z-index: 2;
+}
+
+.info-icon {
+    background: var(--primary-color);
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.info-text h3 {
+    color: var(--primary-color);
+    font-size: 0.9rem;
+    margin-bottom: 0.2rem;
+}
+
+.info-text p {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    line-height: 1.3;
+}
+
+/* ---------- PANEL DERECHO (FORMULARIO) ---------- */
+.form-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.top-header {
+    display: flex;
+    justify-content: flex-end;
+    padding: 2rem 3rem; /* Mayor espaciado para alinear a la esquina */
+    flex-shrink: 0;
+}
+
+.system-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--primary-dark);
+    font-size: 0.85rem;
+    text-align: right;
+}
+
+.system-badge i {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+}
+
+.login-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 2rem;
+    overflow: hidden;
+}
+
+.login-box {
+   background: white;
+    width: 100%;
+    /* Aumentamos el ancho a 650px para que se vea más grande */
+    max-width: 500px; 
+    border-radius: 20px;
+    /* Aumentamos el padding a 4.5rem para darle más espacio interno a los elementos */
+    padding: 3.5rem; 
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.06); 
+    border: 1px solid rgba(0,0,0,0.02);
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.badge-plantel {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: transparent;
+    border: 1px solid var(--accent-green);
+    color: var(--primary-color);
+    padding: 0.3rem 1rem;
+    border-radius: 25px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin-bottom: 1rem;
+}
+
+.title-login {
+    font-size: 1.6rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    margin-bottom: 0.4rem;
+}
+
+.icon-circle {
+    background: var(--primary-color);
+    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+
+.subtitle {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+.subtitle strong {
+    color: var(--text-main); /* Cambiado para que coincida con el gris oscuro de la foto */
+}
+
+.divider {
+    width: 120px;
+    height: 2px;
+    background: linear-gradient(to right, transparent 0%, var(--accent-green) 50%, transparent 100%);
+    margin: 1.5rem auto;
+    border: none;
+}
+
+.form-group {
+    margin-bottom: 1.2rem;
+}
+
+.form-group label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 0.6rem;
+}
+
+.input-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.input-wrapper .input-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    font-size: 1rem;
+}
+
+.input-wrapper input {
+    width: 100%;
+    padding: 1.1rem 1rem 1.1rem 3rem; 
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    font-size: 1.05rem; 
+    outline: none;
+    transition: all 0.3s;
+}
+
+.input-wrapper input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(0, 107, 63, 0.1);
+}
+
+.toggle-password {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 5px;
+    z-index: 10;
+}
+
+.toggle-password:hover {
+    color: var(--primary-color);
+}
+
+.form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.8rem;
+    font-size: 0.8rem;
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    color: var(--text-muted);
+}
+
+.checkbox-container input[type="checkbox"] {
+    accent-color: var(--primary-color);
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.forgot-link {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.forgot-link:hover {
+    text-decoration: underline;
+}
+
+/* ---------- CONTENEDOR DE BOTONES ---------- */
+.botones-container {
+    display: flex;
+    gap: 1rem;
+    width: 100%;
+}
+
+/* ---------- BOTÓN INICIAR SESIÓN ---------- */
+.btn-submit {
+    flex: 1;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 1.2rem;
+    border-radius: 30px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.6rem;
+    transition: all 0.3s;
+}
+
+.btn-submit:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 107, 63, 0.2);
+}
+
+/* ---------- BOTÓN REGRESAR ---------- */
+.btn-submit1 {
+    flex: 1;
+    background: #6b7280;
+    color: white;
+    border: none;
+    padding: 1.2rem;
+    border-radius: 30px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.6rem;
+    transition: all 0.3s;
+    text-decoration: none;
+}
+
+.btn-submit1:hover {
+    background: #f3f4f6;
+    color: var(--text-main);
+}
+
+/* ---------- FOOTER DEL CARD ---------- */
+.card-footer {
+    display: flex;
+    align-items: center;
+    background: transparent; /* Fondo gris eliminado para coincidir con la foto */
+    padding: 1rem 0 0 0;
+    margin-top: 1.5rem;
+    border-top: 1px dashed var(--border-color); /* Separador sutil */
+}
+
+.footer-item {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.8rem;
+}
+
+.item-icon {
+    color: var(--primary-color);
+    font-size: 1.2rem;
+}
+
+.footer-item strong {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-main);
+}
+
+.footer-item span {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+.footer-divider {
+    width: 1px;
+    height: 25px;
+    background-color: var(--border-color);
+}
+
+/* ---------- FOOTER INFERIOR ---------- */
+.bottom-footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    padding-bottom: 2rem; /* Lo empuja hacia el fondo */
+    margin-top: auto;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    background: transparent;
+}
+
+.footer-divider-sm {
+    width: 1px;
+    height: 20px;
+    background-color: #cbd5e1;
+}
+
+.footer-logo-img {
+    height: 25px;
+    width: auto;
+    object-fit: contain;
+}
+
+.bottom-footer a {
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+}
+
+/* ---------- MENSAJE EMERGENTE (TOAST) ---------- */
+.toast-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #ef4444;
+    color: white;
+    padding: 1rem 1.2rem;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    font-weight: 500;
+    font-size: 0.9rem;
+    box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3);
+    z-index: 9999;
+    transform: translateX(150%);
+    animation: slideInRight 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+    max-width: 90%;
+}
+
+@keyframes slideInRight {
+    0% { transform: translateX(150%); }
+    100% { transform: translateX(0); }
+}
+
+.hide-toast {
+    animation: fadeOutRight 0.5s ease forwards;
+}
+
+@keyframes fadeOutRight {
+    0% { transform: translateX(0); opacity: 1; }
+    100% { transform: translateX(150%); opacity: 0; }
+}
+
+/* ======================================================= */
+/* ADAPTACIÓN PARA PANTALLAS PEQUEÑAS (TABLETS Y MÓVILES)  */
+/* ======================================================= */
+@media (max-width: 992px) {
+    /* Es crítico restaurar el overflow para poder hacer scroll en móviles */
+    html, body {
+        overflow-y: auto;
+        height: auto;
+    }
+
+    .login-layout {
+        flex-direction: column;
+        height: auto;
+        min-height: 100vh;
+        overflow-y: visible;
+        overflow-x: hidden;
+    }
+    
+    .brand-panel {
+        flex: none;
+        padding: 2.5rem 1.5rem;
+        height: auto;
+        min-height: 35vh;
+    }
+
+    .brand-panel::before {
+        border-radius: 0 0 30% 30% / 0 0 15% 15%;
+        top: -5%;
+        bottom: 0;
+    }
+
+    .form-panel {
+        height: auto;
+        flex: 1;
+        overflow-y: visible;
+    }
+
+    .top-header {
+        justify-content: center;
+        padding: 1.5rem 1rem;
+    }
+
+    .login-container {
+        padding: 1rem; /* Reducimos el padding lateral del contenedor */
+    }
+
+    .login-box {
+        padding: 2.5rem 2rem; /* Reducimos el padding interno enorme de 4.5rem */
+    }
+}
+
+/* ======================================================= */
+/* ADAPTACIÓN PARA PANTALLAS MUY PEQUEÑAS (SMARTPHONES)    */
+/* ======================================================= */
+@media (max-width: 576px) {
+    .login-box {
+        padding: 2rem 1.2rem;
+    }
+
+    .title-login {
+        font-size: 1.3rem; /* Reducimos un poco la fuente del título */
+    }
+
+    .botones-container {
+        flex-direction: column-reverse; /* Apilamos los botones, dejando "Iniciar sesión" arriba */
+        gap: 0.8rem;
+    }
+
+    .card-footer {
+        flex-direction: column; /* Apilamos la sección de ayuda y seguridad */
+        gap: 1.2rem;
+        text-align: center;
+    }
+
+    .footer-divider {
+        width: 60px; /* Cambiamos el divisor vertical a horizontal */
+        height: 1px;
+    }
+    
+    .bottom-footer {
+        flex-direction: column;
+        padding-bottom: 1.5rem;
+    }
+    
+    .footer-divider-sm {
+        display: none; /* Ocultamos el divisor del footer final en móviles */
+    }
+}

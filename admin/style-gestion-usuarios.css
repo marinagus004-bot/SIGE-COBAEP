@@ -1,0 +1,533 @@
+/* =========================================================
+   ESTILOS ESPECÍFICOS: DIRECTORIO DE PERSONAL
+   ========================================================= */
+
+/* Estructura Principal */
+.layout-directorio {
+    padding: 30px;
+    background-color: #fafbfc;
+}
+
+/* Encabezado */
+.page-header-title {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.header-icon-large {
+    width: 48px;
+    height: 48px;
+    background-color: #10b981;
+    color: #ffffff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
+}
+
+.page-header-title h1 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #111827;
+    margin: 0;
+    letter-spacing: -0.02em;
+}
+
+/* Fila de Tarjetas/Pills */
+.header-pills-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 35px;
+}
+
+.header-pills-left {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.pill {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    padding: 10px 16px;
+    border-radius: 12px;
+    color: #4b5563;
+    font-size: 0.9rem;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.01);
+}
+
+.pill i {
+    color: #6b7280;
+    font-size: 1.1rem;
+}
+
+/* Botón Registrar Personal */
+.btn-primary-add {
+    background: #10b981;
+    color: #ffffff;
+    padding: 12px 24px;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+
+.btn-primary-add:hover {
+    background: #059669;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3);
+}
+
+/* Contenedor de Pestañas */
+.tabs-container {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 0;
+}
+
+.tab {
+    background-color: #ffffff;
+    color: #6b7280;
+    padding: 14px 28px;
+    border-radius: 12px 12px 0 0;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid #e5e7eb;
+    border-bottom: 1px solid transparent; /* Oculta la línea base si está inactivo */
+    transition: all 0.2s ease;
+}
+
+.tab.active {
+    color: #10b981;
+    border-bottom: 3px solid #10b981;
+    background-color: #ffffff;
+    z-index: 2;
+    position: relative;
+    box-shadow: 0 -4px 10px rgba(0,0,0,0.01);
+}
+
+.tab:not(.active) {
+    background-color: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+/* Tarjeta Principal (Tabla) */
+.table-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0 16px 16px 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.02);
+    overflow: hidden;
+    margin-top: -1px; /* Para fusionar borde superior con pestañas */
+    margin-bottom: 40px;
+}
+
+/* Contenedor flexible para alinear buscador y filtros */
+.table-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid #f3f4f6;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+/* Buscador y Filtros */
+.search-wrapper {
+    position: relative;
+    width: 350px;
+    max-width: 100%;
+}
+
+.search-wrapper i {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+}
+
+.search-wrapper input {
+    width: 100%;
+    padding: 12px 16px 12px 42px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    color: #111827;
+    background-color: #f9fafb;
+    outline: none;
+    transition: all 0.2s;
+    box-sizing: border-box; /* Para evitar desbordamientos */
+}
+
+.search-wrapper input:focus {
+    border-color: #10b981;
+    background-color: #ffffff;
+}
+
+.filters-container {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.filter-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 0 14px;
+    background-color: #ffffff;
+    color: #4b5563;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+
+.filter-wrapper:hover {
+    border-color: #10b981;
+}
+
+.filter-wrapper i {
+    color: #9ca3af;
+    font-size: 0.9rem;
+}
+
+.filter-wrapper select {
+    border: none;
+    padding: 10px 0;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #4b5563;
+    outline: none;
+    background: transparent;
+    cursor: pointer;
+    font-family: inherit;
+    width: 100%; /* Asegura que tome el espacio disponible */
+}
+
+/* Tabla Estilizada */
+.table-responsive {
+    overflow-x: auto;
+}
+
+.modern-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.modern-table th {
+    text-align: left;
+    padding: 16px 24px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background-color: #f9fafb;
+    border-bottom: 2px solid #f3f4f6;
+    white-space: nowrap; /* Evita que el texto del encabezado salte de línea */
+}
+
+.modern-table td {
+    padding: 16px 24px;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: middle;
+}
+
+.modern-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* Celda de Usuario (Avatar + Nombre) */
+.user-cell {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.user-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background-color: #ecfdf5;
+    color: #047857;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-info strong {
+    color: #111827;
+    font-size: 1rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.user-info span {
+    color: #6b7280;
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+.text-secondary {
+    color: #4b5563;
+    font-size: 0.95rem;
+    white-space: nowrap;
+}
+
+/* Etiquetas de Rol */
+.badge-role {
+    padding: 6px 14px;
+    border-radius: 30px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-flex;
+    white-space: nowrap;
+}
+
+.badge-role.docente { background-color: #eff6ff; color: #2563eb; }
+.badge-role.administrativo { background-color: #f3f4f6; color: #4b5563; }
+.badge-role.alumno { background-color: #fef3c7; color: #d97706; }
+
+/* Avatares según rol */
+.user-avatar.alumno-avatar { background-color: #fef3c7; color: #d97706; }
+.user-avatar.docente-avatar { background-color: #eff6ff; color: #2563eb; }
+.user-avatar.administrativo-avatar { background-color: #f3f4f6; color: #4b5563; }
+
+/* Botones de Acción en Tabla */
+.action-buttons {
+    display: flex;
+    gap: 12px;
+}
+
+.btn-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.btn-action.edit { background-color: #eff6ff; color: #2563eb; }
+.btn-action.edit:hover { background-color: #dbeafe; color: #1d4ed8; }
+.btn-action.delete { background-color: #fef2f2; color: #ef4444; }
+.btn-action.delete:hover { background-color: #fee2e2; color: #b91c1c; }
+
+/* Banner Inferior Informativo */
+.bottom-banner {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    background-color: #f8faf9;
+    border: 2px dashed #a7f3d0;
+    border-radius: 20px;
+    padding: 30px 40px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.banner-icon-bg {
+    width: 80px;
+    height: 80px;
+    background-color: #ecfdf5;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.banner-icon-bg .users-icon { font-size: 32px; color: #10b981; }
+.banner-icon-bg .search-icon {
+    position: absolute;
+    bottom: -5px;
+    left: -5px;
+    font-size: 24px;
+    color: #047857;
+    background: #ecfdf5;
+    border-radius: 50%;
+    padding: 4px;
+}
+.banner-icon-bg .plus-sparkle {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    color: #34d399;
+    font-weight: 800;
+    font-size: 20px;
+}
+
+.banner-content h3 {
+    margin: 0 0 8px 0;
+    color: #111827;
+    font-size: 1.25rem;
+    font-weight: 800;
+}
+
+.banner-content p {
+    margin: 0;
+    color: #4b5563;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+/* =====================================================
+   ADAPTACIÓN RESPONSIVA (MÓVILES Y TABLETS)
+   ===================================================== */
+
+/* TABLETS Y ESCRITORIOS PEQUEÑOS (Hasta 992px) */
+@media screen and (max-width: 992px) {
+    .header-pills-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .header-pills-left {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .btn-primary-add {
+        width: 100%;
+        justify-content: center;
+        padding: 15px;
+    }
+
+    .table-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .search-wrapper {
+        width: 100%;
+    }
+
+    /* Los filtros se dividen en dos columnas en tablet */
+    .filters-container {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .filter-wrapper {
+        width: 100%;
+        justify-content: space-between;
+    }
+}
+
+/* TELÉFONOS (Hasta 768px) */
+@media screen and (max-width: 768px) {
+    .layout-directorio {
+        padding: 20px 15px;
+    }
+
+    .page-header-title {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    /* Hacer que las pestañas (Tabs) tengan scroll horizontal nativo sin amontonarse */
+    .tabs-container {
+        overflow-x: auto;
+        white-space: nowrap;
+        padding-bottom: 5px; 
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none; /* Firefox */
+    }
+    .tabs-container::-webkit-scrollbar {
+        display: none; /* Chrome/Safari/Edge */
+    }
+    
+    .tab {
+        flex-shrink: 0;
+        padding: 12px 20px;
+    }
+
+    /* Convertir filtros a una sola columna 100% */
+    .filters-container {
+        grid-template-columns: 1fr;
+    }
+
+    /* Scroll Horizontal Seguro para la Tabla */
+    .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Le damos un ancho mínimo a la tabla para que no se apachurre el texto y permita hacer scroll */
+    .modern-table {
+        min-width: 800px; 
+    }
+
+    .bottom-banner {
+        flex-direction: column;
+        text-align: center;
+        padding: 24px 15px;
+    }
+    
+    .banner-icon-bg {
+        margin: 0 auto;
+    }
+}
+
+/* TELÉFONOS PEQUEÑOS (Hasta 480px) */
+@media screen and (max-width: 480px) {
+    .header-pills-left .pill:first-child {
+        display: none; /* Ocultar el pill de la fecha para dar aire */
+    }
+    
+    .header-pills-left {
+        justify-content: flex-end;
+    }
+    
+    .page-header-title h1 {
+        font-size: 1.5rem;
+    }
+
+    .modern-table th, 
+    .modern-table td {
+        padding: 12px 15px; /* Reducir márgenes internos de la tabla para que quepa más */
+    }
+
+    .table-card {
+        border-radius: 0 0 16px 16px; /* Ajuste estético de bordes para móvil */
+    }
+}
