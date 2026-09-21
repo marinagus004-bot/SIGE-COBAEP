@@ -1,7 +1,7 @@
 <?php
 $rol_esperado = isset($_GET['rol']) ? $_GET['rol'] : 'estudiante';
 if ($rol_esperado == 'admin') {
-    $rol_nombre = 'Administrativo';
+    $rol_nombre = 'Administrador';
 } elseif ($rol_esperado == 'docente') {
     $rol_nombre = 'Docente';
 } elseif ($rol_esperado == 'prefectos') {

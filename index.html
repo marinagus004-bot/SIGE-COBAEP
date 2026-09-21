@@ -1,211 +1,163 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Sistema de Información y Gestión Educativa del COBAEP Plantel 27">
     <meta name="theme-color" content="#006b4f">
-
     <title>SIGE · COBAEP Plantel 27</title>
-
-    <!-- =====================================================
-         FAVICON
-    ====================================================== -->
     <link rel="icon" type="image/x-icon" href="img/logo.png">
-
-    <!-- =====================================================
-         FONT AWESOME
-    ====================================================== -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
-    <!-- =====================================================
-         ESTILOS
-    ====================================================== -->
     <link rel="stylesheet" href="style_index.css">
-
 </head>
-
 <body>
-
-    <!-- =====================================================
-         CONTENEDOR PRINCIPAL
-    ====================================================== -->
     <div class="site-wrapper">
-
-        <!-- =================================================
-             HERO
-        ================================================== -->
         <header class="hero">
-
-            <!-- Fotografía del plantel -->
             <div class="hero-image"></div>
-            <!-- Degradado verde -->
             <div class="hero-overlay"></div>
-            <!-- Decoraciones -->
             <div class="hero-decoration hero-decoration-1"></div>
             <div class="hero-decoration hero-decoration-2"></div>
-
-            <!-- Contenido -->
             <div class="hero-content">
-
-                <!-- Badge -->
                 <div class="hero-badge">
                     <i class="fas fa-graduation-cap"></i>
-                    <span>
-                        SIGE · Plataforma institucional
-                    </span>
+                    <span>SIGE · Plataforma institucional</span>
                 </div>
-
-                <!-- Información principal -->
                 <div class="hero-main">
-
-                    <!-- Logo -->
                     <div class="hero-logo">
                         <img src="img/logo-blanco.png" alt="Logotipo COBAEP">
                     </div>
-
-                    <!-- Separador -->
                     <div class="hero-divider"></div>
-
-                    <!-- Texto -->
                     <div class="hero-info">
                         <h1>COBAEP Plantel 27</h1>
                         <h2>Sistema de Información y Gestión Educativa</h2>
-                        <p>
-                            Plataforma institucional para la gestión académica,
-                            administrativa y de servicios escolares.
-                        </p>
-
+                        <p>Plataforma institucional para la gestión académica, administrativa y de servicios escolares.</p>
                         <div class="hero-location">
                             <i class="fas fa-location-dot"></i>
                             <span>Zaragoza, Puebla</span>
                         </div>
                     </div>
-
                 </div>
             </div>
         </header>
 
-        <!-- =================================================
-             SECCIÓN DE PERFILES
-        ================================================== -->
         <main>
             <section class="profiles-section" aria-labelledby="profiles-title">
-
-                <!-- Encabezado -->
                 <div class="section-heading">
                     <div class="section-heading-icon">
                         <i class="fas fa-user-circle"></i>
                     </div>
                     <div>
-                        <h2 id="profiles-title">Selecciona tu perfil</h2>
-                        <p>Elige el tipo de cuenta con el que deseas acceder al sistema.</p>
+                        <h2 id="profiles-title">¿Cómo deseas ingresar?</h2>
+                        <p>Selecciona el acceso correspondiente a tu tipo de usuario.</p>
                     </div>
                 </div>
 
-                <!-- =================================================
-                     TARJETAS PRINCIPALES
-                ================================================== -->
-                <div class="profiles-grid">
-
-                    <!-- =============================================
-                         ESTUDIANTE
-                    ============================================== -->
+                <div class="student-container">
                     <article class="profile-card student-card">
                         <div class="card-dots"></div>
-                        <div class="profile-icon">
-                            <i class="fas fa-user-graduate"></i>
+                        
+                        <!-- NUEVO: Agrupamos Icono y Texto para que se mantengan a la par -->
+                        <div class="student-card-inner">
+                            <div class="student-icon-wrapper">
+                                <div class="profile-icon">
+                                    <i class="fas fa-user-graduate"></i>
+                                </div>
+                            </div>
+                            
+                            <div class="student-content">
+                                
+                                <h3>Estudiante</h3>
+                                <br>
+                                <span class="role-tag student-role-tag">
+                                    <i class="fas fa-id-card"></i>
+                                    Alumno
+                                </span>
+                                <p>Consulta tu horario, historial de asistencias, calificaciones y descarga tus actividades de regularización.</p>
+                            </div>
                         </div>
-                        <h3>Estudiante</h3>
-                        <span class="role-tag">
-                            <i class="fas fa-id-card"></i>
-                            Alumno
-                        </span>
-                        <p>
-                            Consulta tu horario, historial de asistencias,
-                            calificaciones y descarga tus actividades
-                            de regularización.
-                        </p>
-                        <a href="login.php?rol=estudiante" class="profile-button" aria-label="Ingresar como estudiante">
-                            <span>Ingresar</span>
-                            <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </article>
 
-                    <!-- =============================================
-                         DOCENTE
-                    ============================================== -->
-                    <article class="profile-card teacher-card">
-                        <div class="card-dots"></div>
-                        <div class="profile-icon">
-                            <i class="fas fa-chalkboard-teacher"></i>
+                        <!-- EL BOTÓN AHORA ESTÁ FUERA, TOMANDO EL ANCHO COMPLETO PARA CENTRARSE -->
+                        <div class="student-button-wrapper">
+                            <a href="login.php?rol=estudiante" class="profile-button student-button" aria-label="Ingresar como estudiante">
+                                <span>Ingresar como estudiante</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </a>
                         </div>
-                        <h3>Docente</h3>
-                        <span class="role-tag">
-                            <i class="fas fa-chalkboard"></i>
-                            Profesor
-                        </span>
-                        <p>
-                            Sube actividades de regularización,
-                            gestiona a tus alumnos y revisa
-                            reportes de asistencia.
-                        </p>
-                        <a href="login.php?rol=docente" class="profile-button" aria-label="Ingresar como docente">
-                            <span>Ingresar</span>
-                            <i class="fas fa-arrow-right"></i>
-                        </a>
                     </article>
-
-                    <!-- =============================================
-                         ADMINISTRATIVO
-                    ============================================== -->
-                    <article class="profile-card admin-card">
-                        <div class="card-dots"></div>
-                        <div class="profile-icon">
-                            <i class="fas fa-user-cog"></i>
-                        </div>
-                        <h3>Administrativo</h3>
-                        <span class="role-tag">
-                            <i class="fas fa-building"></i>
-                            Personal
-                        </span>
-                        <p>
-                            Gestiona usuarios, da de alta horarios
-                            Crea tus grupos, 
-                            pase de lista.
-                        </p>
-                        <a href="login.php?rol=admin" class="profile-button" aria-label="Ingresar como administrativo">
-                            <span>Ingresar</span>
-                            <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </article>
-
                 </div>
 
-                <!-- =============================================
-                     BANNER DE PREFECTURA (ESTILO HORIZONTAL)
-                ============================================== -->
-                <div class="prefectura-banner">
-                    <div class="prefectura-icon">
-                        <i class="fas fa-user-shield"></i>
-                    </div>
-                    <div class="prefectura-text">
-                        <strong>Prefectura</strong>
-                        <span>Acceso para la gestión, control y pase de lista de estudiantes.</span>
-                    </div>
-                    <a href="login.php?rol=prefectos" class="prefectura-button" aria-label="Ingresar como prefectura">
-                        <span>Ingresar</span>
-                        <i class="fas fa-arrow-right"></i>
-                    </a>
-                </div>
+                <div class="secondary-profiles">
+                    <details class="secondary-dropdown">
+                        <summary class="secondary-heading">
+                            <div class="heading-content">
+                                <i class="fas fa-users-cog"></i>
+                                <span>Otros accesos institucionales</span>
+                            </div>
+                            <i class="fas fa-chevron-down arrow-icon"></i>
+                        </summary>
+                        
+                        <div class="profilesEsc-grid">
+                            <article class="profile-card secondary-card teacher-card">
+                                <div class="secondary-card-top">
+                                    <div class="profile-icon">
+                                        <i class="fas fa-chalkboard-teacher"></i>
+                                    </div>
+                                    <div class="secondary-card-title">
+                                        <h3>Docente</h3>
+                                        <span class="role-tag">
+                                            <i class="fas fa-chalkboard"></i>
+                                            Profesor
+                                        </span>
+                                    </div>
+                                </div>
+                                <a href="login.php?rol=docente" class="profile-button secondary-button" aria-label="Ingresar como docente">
+                                    <span>Ingresar</span>
+                                    <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </article>
 
+                            <article class="profile-card secondary-card admin-card">
+                                <div class="secondary-card-top">
+                                    <div class="profile-icon">
+                                        <i class="fas fa-user-cog"></i>
+                                    </div>
+                                    <div class="secondary-card-title">
+                                        <h3>Administrador</h3>
+                                        <span class="role-tag">
+                                            <i class="fas fa-building"></i>
+                                            Personal
+                                        </span>
+                                    </div>
+                                </div>
+                                <a href="login.php?rol=admin" class="profile-button secondary-button" aria-label="Ingresar como administrativo">
+                                    <span>Ingresar</span>
+                                    <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </article>
+
+                            <article class="profile-card secondary-card prefectura-card">
+                                <div class="secondary-card-top">
+                                    <div class="profile-icon">
+                                        <i class="fas fa-user-shield"></i>
+                                    </div>
+                                    <div class="secondary-card-title">
+                                        <h3>Prefectura</h3>
+                                        <span class="role-tag">
+                                            <i class="fas fa-clipboard-check"></i>
+                                            Control escolar
+                                        </span>
+                                    </div>
+                                </div>
+                                <a href="login.php?rol=prefectos" class="profile-button secondary-button" aria-label="Ingresar como prefectura">
+                                    <span>Ingresar</span>
+                                    <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </article>
+                        </div>
+                    </details>
+                </div>
             </section>
 
-            <!-- =================================================
-                 SEGURIDAD
-            ================================================== -->
             <section class="security-section">
                 <div class="security-icon">
                     <i class="fas fa-shield-alt"></i>
@@ -219,40 +171,24 @@
                     Conexión segura
                 </div>
             </section>
-
         </main>
 
-        <!-- =================================================
-             FOOTER
-        ================================================== -->
         <footer class="site-footer">
             <div class="footer-content">
-
-                <!-- =============================================
-                     COLUMNA INSTITUCIONAL
-                ============================================== -->
                 <div class="footer-column footer-brand">
                     <img src="img/logo-blanco.png" alt="COBAEP Plantel 27">
                     <h3>COBAEP Plantel 27</h3>
                     <p>Sistema de Información y Gestión Educativa</p>
                     <span>Zaragoza, Puebla</span>
                 </div>
-
-                <!-- =============================================
-                     PLATAFORMA
-                ============================================== -->
                 <div class="footer-column">
                     <h4>Plataforma</h4>
                     <a href="#">Inicio</a>
                     <a href="login.php?rol=estudiante">Estudiante</a>
                     <a href="login.php?rol=docente">Docente</a>
                     <a href="login.php?rol=admin">Administrativo</a>
-                    <a href="login.php?rol=Prefecto">Prefecto</a>
+                    <a href="login.php?rol=prefectos">Prefectura</a>
                 </div>
-
-                <!-- =============================================
-                     SOPORTE
-                ============================================== -->
                 <div class="footer-column">
                     <h4>Soporte</h4>
                     <a href="mailto:contacto@cobaep27.edu.mx">Contacto</a>
@@ -260,10 +196,6 @@
                     <a href="mailto:contacto@cobaep27.edu.mx?subject=Ayuda%20SIGE">Centro de ayuda</a>
                     <a href="mailto:contacto@cobaep27.edu.mx?subject=Reporte%20de%20problema">Reportar un problema</a>
                 </div>
-
-                <!-- =============================================
-                     INFORMACIÓN
-                ============================================== -->
                 <div class="footer-column">
                     <h4>Información</h4>
                     <a href="#">Aviso de privacidad</a>
@@ -272,10 +204,6 @@
                     <a href="#">Uso responsable</a>
                 </div>
             </div>
-
-            <!-- =============================================
-                 FOOTER INFERIOR
-            ============================================== -->
             <div class="footer-bottom">
                 <div class="footer-copyright">
                     <i class="fas fa-copyright"></i>
