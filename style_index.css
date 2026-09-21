@@ -478,24 +478,29 @@ details[open] .profilesEsc-grid {
     gap: 15px;
 }
 
+/* ============================================================
+   NUEVOS ESTILOS DE TARJETAS SECUNDARIAS
+   ============================================================ */
 .secondary-card {
-    min-height: 210px;
-    padding: 21px 20px;
+    min-height: 220px;
+    padding: 28px 20px 24px;
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
     border: 1px solid var(--border);
-    border-top: 3px solid var(--green);
-    border-radius: 16px;
-    background: white;
-    box-shadow: 0 5px 18px rgba(0,75,55,0.045);
+    border-top-width: 4px;
+    border-top-style: solid;
+    border-radius: 18px;
+    background: linear-gradient(180deg, #ffffff 0%, #f4f9f7 100%);
+    box-shadow: 0 8px 20px rgba(0, 75, 55, 0.05);
     transition: var(--transition);
+    position: relative;
 }
 
 .secondary-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 28px rgba(0,75,55,0.10);
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 75, 55, 0.12);
 }
 
 .teacher-card {
@@ -518,20 +523,26 @@ details[open] .profilesEsc-grid {
 }
 
 .secondary-card .profile-icon {
-    width: 58px;
-    height: 58px;
-    margin: 0 auto 15px auto;
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 18px auto;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 50%;
-    background: var(--white);
-    box-shadow: 0 0 0 6px var(--green-soft), 0 7px 15px rgba(0,85,62,0.10);
+    border-radius: 18px;
+    background: var(--green-soft);
+    color: var(--green);
+    transition: var(--transition);
+}
+
+.secondary-card:hover .profile-icon {
+    background: var(--green);
+    color: var(--white);
+    transform: scale(1.08);
 }
 
 .secondary-card .profile-icon i {
-    font-size: 24px;
-    color: var(--green);
+    font-size: 26px;
 }
 
 .secondary-card-title {
@@ -541,16 +552,17 @@ details[open] .profilesEsc-grid {
 }
 
 .secondary-card h3 {
-    margin-bottom: 6px;
+    margin-bottom: 8px;
     font-size: 19px;
     line-height: 1.15;
     font-weight: 750;
+    color: var(--text);
 }
 
 .secondary-card .role-tag {
     margin-bottom: 12px;
-    padding: 4px 10px;
-    font-size: 8px;
+    padding: 5px 12px;
+    font-size: 9px;
 }
 
 .secondary-card p {
@@ -562,16 +574,28 @@ details[open] .profilesEsc-grid {
 }
 
 .secondary-button {
-    width: 125px;
-    min-height: 36px;
+    width: 85%;
+    min-height: 42px;
     margin-top: auto;
     gap: 10px;
     font-size: 12px;
+    background: var(--white);
+    color: var(--green);
+    border: 1px solid var(--green-border);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+}
+
+.secondary-card:hover .secondary-button {
+    background: linear-gradient(135deg, #006b4f, #168a66);
+    color: var(--white);
+    border-color: transparent;
+    box-shadow: 0 8px 20px rgba(0,85,62,0.20);
 }
 
 .secondary-button i {
-    font-size: 10px;
+    font-size: 11px;
 }
+/* ============================================================ */
 
 .profile-card {
     position: relative;
@@ -1053,6 +1077,8 @@ a:focus-visible {
     .secondary-heading {
         font-size: 17px;
     }
+    
+    /* REAJUSTES MÓVIL TARJETAS SECUNDARIAS */
     .secondary-card {
         min-height: 185px;
         padding: 20px;
@@ -1083,6 +1109,7 @@ a:focus-visible {
     .secondary-button {
         margin-top: auto;
     }
+
     .security-section {
         flex-wrap: wrap;
         width: calc(100% - 20px);
