@@ -156,7 +156,7 @@ try {
                     <i class="fas fa-bars"></i>
                 </button>
                 <div class="welcome-text">
-                    <span class="eyebrow">👋 ¡Hola!</span>
+                    <span class="eyebrow"> ¡Hola 👋</span>
                     <h1 class="page-title"><?php echo $nombre_completo; ?></h1>
                     <p class="page-desc">Alumno • Generación <?php echo $generacion; ?></p>
                 </div>
