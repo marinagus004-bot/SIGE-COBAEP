@@ -12,6 +12,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $id_tipo_falta = intval($_POST['id_tipo_falta']);
     $observaciones = trim($_POST['observaciones']);
     
+    // Capturar datos de suspensión (si los hay)
+    $dias_suspension = (int)($_POST['dias_suspension'] ?? 0);
+    $es_baja_definitiva = isset($_POST['suspension_definitiva']) ? 1 : 0;
+    
     $id_emisor = $_SESSION['id_usuario'];
     $tipo_emisor = 'Prefecto'; 
 
@@ -28,9 +32,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
         $id_alumno = $alumno['id_alumno'];
 
-        // 2. Insertar el reporte
-        // Le mandamos un "0" en puntos_descontados porque tu TRIGGER se encargará de sobreescribirlo 
-        // y hacer todo el cálculo y actualización de la tabla alumnos.
+        // 2. Insertar el reporte (El trigger ajustará los puntos)
         $query_insert = "INSERT INTO reportes (id_alumno, id_tipo_falta, id_emisor, tipo_emisor, puntos_descontados, observaciones) 
                          VALUES (:id_alumno, :id_tipo_falta, :id_emisor, :tipo_emisor, 0, :observaciones)";
         
@@ -43,14 +45,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             ':observaciones' => $observaciones
         ]);
 
-        // Si el trigger hizo su trabajo sin errores, redirigimos con éxito
+        // 3. Procesar Sanción Extra (Suspensión o Baja)
+        $stmt_verificar = $pdo->prepare("SELECT tipo_sancion FROM tipos_falta WHERE id_tipo_falta = :id_tipo_falta LIMIT 1");
+        $stmt_verificar->execute([':id_tipo_falta' => $id_tipo_falta]);
+        $tipo_sancion = $stmt_verificar->fetchColumn();
+
+        if ($tipo_sancion === 'Suspension') {
+            if ($es_baja_definitiva === 1) {
+                // Aplicar Baja Definitiva
+                $stmtUpdate = $pdo->prepare("UPDATE alumnos SET estado_disciplinario = 'Baja', fecha_fin_suspension = NULL WHERE id_alumno = :id_alumno");
+                $stmtUpdate->execute([':id_alumno' => $id_alumno]);
+            } elseif ($dias_suspension > 0) {
+                // Aplicar Suspensión Temporal (Sumamos los días a la fecha actual)
+                $fecha_retorno = date('Y-m-d', strtotime("+$dias_suspension days"));
+                $stmtUpdate = $pdo->prepare("UPDATE alumnos SET estado_disciplinario = 'Suspendido', fecha_fin_suspension = :fecha_fin WHERE id_alumno = :id_alumno");
+                $stmtUpdate->execute([
+                    ':fecha_fin' => $fecha_retorno, 
+                    ':id_alumno' => $id_alumno
+                ]);
+            }
+        }
+
+        // 4. Redirigir con éxito
         header("Location: ../creacion_reportes.php?status=success");
         exit();
 
     } catch (PDOException $e) {
-        // AQUÍ ESTÁ LA SOLUCIÓN AL MISTERIO:
-        // Si el Trigger falla (por falta de tabla, error matemático, etc.), 
-        // lo atrapamos y te lo mostramos en pantalla para que sepas qué arreglar en MySQL.
+        // Atrapar errores de la BD o del Trigger
         $error_msg = addslashes($e->getMessage());
         
         echo "<script>

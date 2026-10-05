@@ -13,7 +13,7 @@ $filtro_matricula = trim($_GET['matricula'] ?? '');
 $filtro_fecha = trim($_GET['fecha'] ?? '');
 
 $query = "
-    SELECT a.id_asistencia, a.fecha_hora_escaneo, a.tipo_registro, al.matricula, al.nombre, al.apellido_paterno, a.estatus, al.semestre, al.turno 
+    SELECT a.id_asistencia, a.fecha_hora_escaneo, a.fecha_hora_salida, a.tipo_registro, al.matricula, al.nombre, al.apellido_paterno, a.estatus, al.semestre, al.turno 
     FROM asistencias a
     INNER JOIN alumnos al ON a.id_alumno = al.id_alumno
     WHERE 1=1
@@ -196,48 +196,48 @@ try {
                                     echo '<td colspan="7"><i class="far fa-calendar-alt" style="margin-right: 8px;"></i> Asistencias del día: ' . $fecha_formateada_titulo . '</td>';
                                     echo '</tr>';
                                 }
-
                                 $hora_entrada = date('h:i A', strtotime($row['fecha_hora_escaneo']));
-                                
-                                // LOGICA ACTUALIZADA DE COLORES Y ESTADOS
-                                $estado_str = strtolower($row['estatus'] ?? '');
-                                $clase_badge = 'status-puntual'; 
-                                $clase_fila = '';
-                                $texto_estatus = !empty($row['estatus']) ? $row['estatus'] : 'Falta';
 
-                                if ($estado_str === 'retardo') {
-                                    $clase_badge = 'status-retardo';
-                                } elseif ($estado_str === 'falta' || empty($estado_str)) {
-                                    $clase_badge = 'status-falta';
-                                    $clase_fila = 'fila-falta';
-                                    $texto_estatus = 'Falta';
-                                } elseif ($estado_str === 'retardo justificado') {
-                                    $clase_badge = 'status-puntual';
-                                    $texto_estatus = 'Puntual (Just.)';
-                                } elseif ($estado_str === 'falta justificada') {
-                                    $clase_badge = 'status-justificada';
-                                }
+// LÓGICA ACTUALIZADA DE COLORES Y ESTADOS
+$estado_str = strtolower($row['estatus'] ?? '');
+$clase_badge = 'status-puntual'; 
+$clase_fila = '';
+$texto_estatus = !empty($row['estatus']) ? $row['estatus'] : 'Falta';
+
+if ($estado_str === 'retardo') {
+    $clase_badge = 'status-retardo';
+} elseif ($estado_str === 'falta' || empty($estado_str)) {
+    $clase_badge = 'status-falta';
+    $clase_fila = 'fila-falta';
+    $texto_estatus = 'Falta';
+} elseif ($estado_str === 'suspendido') {
+    $clase_badge = 'status-suspendido';
+    $clase_fila = 'fila-suspendido'; // <-- NUEVA CLASE PARA LA FILA
+    $texto_estatus = 'Suspendido';
+} elseif ($estado_str === 'retardo justificado') {
+    $clase_badge = 'status-puntual';
+    $texto_estatus = 'Puntual (Just.)';
+} elseif ($estado_str === 'falta justificada') {
+    $clase_badge = 'status-justificada';
+}
+                                
+
+                                
                         ?>
-                            <tr class="<?php echo $clase_fila; ?>">
-                                <td><strong><?php echo $hora_entrada; ?></strong></td>
-                                <td>
-                                    <?php 
-                                    if (!empty($row['fecha_hora_salida'])) {
-                                        echo '<strong>' . date('h:i A', strtotime($row['fecha_hora_salida'])) . '</strong>';
-                                    } else {
-                                        echo '<span style="color: var(--muted); font-size: 0.8rem;">Aún en plantel</span>';
-                                    }
-                                    ?>
-                                </td>
-                                <td><?php echo htmlspecialchars($row['matricula']); ?></td>
-                                <td><?php echo htmlspecialchars($row['apellido_paterno'] . ', ' . $row['nombre']); ?></td>
-                                <td><?php echo htmlspecialchars($row['grado_grupo'] ?? 'Sin asignar'); ?></td>
-                                <td>
-                                    <span class="status-badge-table <?php echo $clase_badge; ?>">
-                                        <?php echo htmlspecialchars($texto_estatus); ?>
-                                    </span>
-                                </td>
-                                <td>
+                           <tr class="<?php echo $clase_fila; ?>">
+    <td><strong><?php echo $hora_entrada; ?></strong></td>
+    <td>
+        <!-- ... (código de salida) ... -->
+    </td>
+    <td><?php echo htmlspecialchars($row['matricula']); ?></td>
+    <td><?php echo htmlspecialchars($row['apellido_paterno'] . ', ' . $row['nombre']); ?></td>
+    <td><?php echo htmlspecialchars($row['grado_grupo'] ?? 'Sin asignar'); ?></td>
+    <td>
+        <span class="status-badge-table <?php echo $clase_badge; ?>">
+            <?php echo htmlspecialchars($texto_estatus); ?>
+        </span>
+    </td>
+    <td>
                                     <?php if ($estado_str === 'falta' || $estado_str === 'retardo' || empty($estado_str)): ?>
                                         <form action="procesos/justificar.php" method="POST" style="margin: 0;">
                                             <input type="hidden" name="id_asistencia" value="<?php echo $row['id_asistencia']; ?>">

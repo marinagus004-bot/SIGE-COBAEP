@@ -64,6 +64,60 @@ $nombre_usuario = isset($_SESSION['nombre'])
     
     <link rel="stylesheet" href="../admin/style_dashboard_admin.css">
     <link rel="stylesheet" href="../Prefectura/style_dashboard_prefectura.css">
+
+    <style>
+        /* ESTILOS DEL NUEVO MODAL DE ALERTA */
+        .alert-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(4px);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .alert-modal-box {
+            background: #252525;
+            color: #f1f5f9;
+            width: 90%;
+            max-width: 480px;
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.8), 0 10px 10px -5px rgba(0, 0, 0, 0.5);
+            border-top: 4px solid #ef4444;
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        .alert-modal-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 1.2rem;
+            font-size: 1.15rem;
+            font-weight: 700;
+        }
+
+        .alert-modal-title i { color: #ef4444; font-size: 1.4rem; }
+        .alert-modal-text { font-size: 0.95rem; line-height: 1.6; color: #cbd5e1; margin-bottom: 1.5rem; }
+        .alert-modal-date { font-weight: 700; color: #f87171; display: block; margin-top: 15px; font-size: 1rem; }
+        
+        .alert-modal-footer { display: flex; justify-content: flex-end; margin-top: 2rem; }
+        .alert-modal-btn {
+            background: #cbd5e1; color: #0f172a; border: none; padding: 0.75rem 1.8rem;
+            border-radius: 99px; font-weight: 600; cursor: pointer; transition: 0.2s ease;
+        }
+        .alert-modal-btn:hover { background: #f8fafc; transform: translateY(-1px); }
+        .status-suspendido { background-color: #000000; color: #ffffff; }
+
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.95) translateY(10px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+    </style>
+
 </head>
 
 <body>
@@ -83,25 +137,24 @@ $nombre_usuario = isset($_SESSION['nombre'])
             </div>
 
             <nav class="navigation" aria-label="Navegación principal">
-    <span class="nav-heading">Menú principal</span>
-    <a href="dashboard_prefectura.php" class="nav-item">
-        <i class="fas fa-shield-halved"></i>
-        <span>Control de Acceso</span>
-    </a>
-    <a href="historial_asistencias.php" class="nav-item">
-        <i class="fas fa-history"></i>
-        <span>Historial y Reportes</span>
-    </a>
-    <a href="creacion_reportes.php" class="nav-item">
-        <i class="fa-solid fa-file-lines"></i>
-        <span>Creacion de Reporte de Conducta</span>
-    </a>  
-    <!-- NUEVO MÓDULO DE EXPEDIENTES -->
-    <a href="expediente_alumnos.php" class="nav-item">
-        <i class="fas fa-folder-open"></i>
-        <span>Expediente de Alumnos</span>
-    </a>
-</nav>
+                <span class="nav-heading">Menú principal</span>
+                <a href="dashboard_prefectura.php" class="nav-item">
+                    <i class="fas fa-shield-halved"></i>
+                    <span>Control de Acceso</span>
+                </a>
+                <a href="historial_asistencias.php" class="nav-item">
+                    <i class="fas fa-history"></i>
+                    <span>Historial y Reportes</span>
+                </a>
+                <a href="creacion_reportes.php" class="nav-item">
+                    <i class="fa-solid fa-file-lines"></i>
+                    <span>Creacion de Reporte de Conducta</span>
+                </a>  
+                <a href="expediente_alumnos.php" class="nav-item">
+                    <i class="fas fa-folder-open"></i>
+                    <span>Expediente de Alumnos</span>
+                </a>
+            </nav>
 
             <div class="sidebar-bottom">
                 <div class="institution">
@@ -211,17 +264,16 @@ $nombre_usuario = isset($_SESSION['nombre'])
 
             <div class="action-grid">
                 <a href="escaner_qr.php" class="action-card scanner-btn">
-    <div class="action-icon green">
-        <i class="fas fa-qrcode"></i>
-    </div>
-    <div class="action-text">
-        <h3>Escáner QR</h3>
-        <p>Captura credenciales rápidamente.</p>
-    </div>
-    <i class="fas fa-arrow-right action-arrow"></i>
-           </a>
+                    <div class="action-icon green">
+                        <i class="fas fa-qrcode"></i>
+                    </div>
+                    <div class="action-text">
+                        <h3>Escáner QR</h3>
+                        <p>Captura credenciales rápidamente.</p>
+                    </div>
+                    <i class="fas fa-arrow-right action-arrow"></i>
+                </a>
                 
-
                 <a href="#" class="action-card suspension-btn" onclick="document.getElementById('modalSuspension').style.display='flex'">
                     <div class="action-icon red">
                         <i class="fas fa-calendar-times"></i>
@@ -285,17 +337,20 @@ $nombre_usuario = isset($_SESSION['nombre'])
                                     $texto_estatus = !empty($registro['estatus']) ? $registro['estatus'] : 'Falta';
 
                                     if ($estatus_min === 'retardo') {
-                                        $clase_badge = 'status-retardo';
-                                    } elseif ($estatus_min === 'falta' || empty($estatus_min)) {
-                                        $clase_badge = 'status-falta';
-                                        $clase_fila = 'fila-falta';
-                                        $texto_estatus = 'Falta';
-                                    } elseif ($estatus_min === 'retardo justificado') {
-                                        $clase_badge = 'status-puntual'; 
-                                        $texto_estatus = 'Puntual (Justificado)'; 
-                                    } elseif ($estatus_min === 'falta justificada') {
-                                        $clase_badge = 'status-justificada';
-                                    }
+                                   $clase_badge = 'status-retardo';
+                                } elseif ($estatus_min === 'falta' || empty($estatus_min)) {
+                                   $clase_badge = 'status-falta';
+                                   $clase_fila = 'fila-falta';
+                                   $texto_estatus = 'Falta';
+                                } elseif ($estatus_min === 'suspendido') {
+                                   $clase_badge = 'status-suspendido'; 
+                                   $texto_estatus = 'Suspendido'; 
+                                } elseif ($estatus_min === 'retardo justificado') {
+                                   $clase_badge = 'status-puntual'; 
+                                   $texto_estatus = 'Puntual (Justificado)'; 
+                                } elseif ($estatus_min === 'falta justificada') {
+                                   $clase_badge = 'status-justificada';
+                                }
     
                                     $nombre_completo = htmlspecialchars($registro['apellido_paterno'] . ', ' . $registro['nombre']);
                                 ?>
@@ -395,6 +450,42 @@ $nombre_usuario = isset($_SESSION['nombre'])
         </div>
     </div>
 
+    <!-- NUEVO: MODAL DE ALERTA DE SUSPENSIÓN -->
+    <div class="alert-modal-overlay" id="alertModal">
+        <div class="alert-modal-box">
+            <div class="alert-modal-title">
+                <i class="fas fa-minus-circle"></i>
+                <span>ACCESO DENEGADO</span>
+            </div>
+            <div class="alert-modal-text">
+                El alumno se encuentra SUSPENDIDO y no puede registrar asistencia en el plantel.
+                <span class="alert-modal-date" id="alertReturnDate"></span>
+            </div>
+            <div class="alert-modal-footer">
+                <button type="button" class="alert-modal-btn" onclick="document.getElementById('alertModal').style.display='none'">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
     <script src="../Prefectura/procesos/dashboard_prefecturas.js"></script>
+
+    <!-- NUEVO: LÓGICA PARA DISPARAR LA ALERTA PERSONALIZADA -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const msg = urlParams.get('msg');
+            const retorno = urlParams.get('retorno');
+
+            if (msg === 'alumno_suspendido') {
+                document.getElementById('alertReturnDate').innerText = 'Podrá reingresar el: ' + retorno;
+                document.getElementById('alertModal').style.display = 'flex';
+                window.history.replaceState(null, null, window.location.pathname);
+            } else if (msg === 'alumno_baja') {
+                document.getElementById('alertReturnDate').innerText = 'El alumno fue dado de baja definitivamente.';
+                document.getElementById('alertModal').style.display = 'flex';
+                window.history.replaceState(null, null, window.location.pathname);
+            }
+        });
+    </script>
 </body>
 </html>

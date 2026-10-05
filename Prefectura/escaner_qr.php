@@ -24,6 +24,7 @@ if (!isset($_SESSION['id_usuario']) || $_SESSION['rol'] !== 'prefectos') {
         .btn-volver { margin-top: 20px; background: #ffffff; color: #032b1e; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; }
         .success { color: #059669; }
         .error { color: #dc2626; }
+        .suspendido { color: #9f1239; background: #ffe4e6; padding: 10px; border-radius: 8px; border: 1px solid #fda4af; }
     </style>
 </head>
 <body>
@@ -58,17 +59,27 @@ if (!isset($_SESSION['id_usuario']) || $_SESSION['rol'] !== 'prefectos') {
             .then(response => response.json())
             .then(data => {
                 const resDiv = document.getElementById('resultado');
-                if(data.status === 'success') {
+                
+                // ATRAPAMOS LA ALERTA DE SUSPENSIÓN AQUÍ
+                if (data.status === 'error_suspendido') {
+                    // Muestra alerta nativa para que haga ruido y pare la lectura
+                    alert("⛔ " + data.message);
+                    // También lo muestra en el cuadro del escáner en color rojo oscuro
+                    resDiv.innerHTML = `<div class='suspendido'><i class='fas fa-user-lock'></i> ${data.message}</div>`;
+                } 
+                else if(data.status === 'success') {
                     resDiv.innerHTML = `<span class='success'><i class='fas fa-check-circle'></i> ${data.message}</span>`;
                 } else {
                     resDiv.innerHTML = `<span class='error'><i class='fas fa-times-circle'></i> ${data.message}</span>`;
                 }
                 
-                // Esperar 2.5 segundos antes de permitir otro escaneo
+                // Esperar un poco más (4 segundos) si fue suspensión para que les dé tiempo de leer
+                let tiempoEspera = (data.status === 'error_suspendido') ? 4000 : 2500;
+                
                 setTimeout(() => {
                     resDiv.innerHTML = "Esperando siguiente escaneo...";
                     escaneando = false;
-                }, 2500);
+                }, tiempoEspera);
             })
             .catch(error => {
                 document.getElementById('resultado').innerHTML = "<span class='error'>Error de conexión.</span>";

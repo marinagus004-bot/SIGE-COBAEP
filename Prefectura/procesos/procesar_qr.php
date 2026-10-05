@@ -20,8 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     try {
-        // 1. Verificar si el alumno existe y está activo
-        $stmt = $pdo->prepare("SELECT id_alumno, nombre, apellido_paterno, turno FROM ALUMNOS WHERE matricula = ? AND estatus = 'Alta'");
+        $stmt = $pdo->prepare("SELECT id_alumno, nombre, apellido_paterno, turno, estado_disciplinario, fecha_fin_suspension FROM ALUMNOS WHERE matricula = ? AND estatus = 'Alta'");
         $stmt->execute([$matricula]);
         $alumno = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -30,16 +29,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit();
         }
 
-        $id_alumno = $alumno['id_alumno'];
         $nombre_completo = $alumno['nombre'] . ' ' . $alumno['apellido_paterno'];
+        $fecha_hoy = date('Y-m-d');
 
-        // 2. Verificar si ya tiene una entrada el día de hoy
+        // ==========================================
+        // BARRERA: VERIFICAR SUSPENSIÓN PARA EL QR
+        // ==========================================
+        if ($alumno['estado_disciplinario'] === 'Baja') {
+            echo json_encode(['status' => 'error_suspendido', 'message' => "ACCESO DENEGADO: $nombre_completo está dado de BAJA definitiva."]);
+            exit();
+        }
+
+        if ($alumno['estado_disciplinario'] === 'Suspendido' && $alumno['fecha_fin_suspension'] >= $fecha_hoy) {
+            $fecha_retorno = date('d/m/Y', strtotime($alumno['fecha_fin_suspension'] . ' + 1 day'));
+            echo json_encode(['status' => 'error_suspendido', 'message' => "ACCESO DENEGADO: $nombre_completo está SUSPENDIDO. Puede regresar el $fecha_retorno."]);
+            exit();
+        }
+        
+        // Si el castigo ya expiró, cambiar a Activo automáticamente
+        if ($alumno['estado_disciplinario'] === 'Suspendido' && $alumno['fecha_fin_suspension'] < $fecha_hoy) {
+            $stmtActivar = $pdo->prepare("UPDATE ALUMNOS SET estado_disciplinario = 'Activo', fecha_fin_suspension = NULL WHERE id_alumno = ?");
+            $stmtActivar->execute([$alumno['id_alumno']]);
+        }
+        // ==========================================
+
+        $id_alumno = $alumno['id_alumno'];
+
         $stmtCheck = $pdo->prepare("SELECT id_asistencia, fecha_hora_salida FROM ASISTENCIAS WHERE id_alumno = ? AND DATE(fecha_hora_escaneo) = CURDATE() ORDER BY id_asistencia DESC LIMIT 1");
         $stmtCheck->execute([$id_alumno]);
         $registro_hoy = $stmtCheck->fetch(PDO::FETCH_ASSOC);
 
         if ($registro_hoy) {
-            // Si ya entró y no tiene hora de salida, registrar SALIDA
             if (is_null($registro_hoy['fecha_hora_salida'])) {
                 $stmtOut = $pdo->prepare("UPDATE ASISTENCIAS SET fecha_hora_salida = NOW() WHERE id_asistencia = ?");
                 $stmtOut->execute([$registro_hoy['id_asistencia']]);
@@ -49,11 +69,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             exit();
         } else {
-            // 3. No tiene registro hoy, registrar ENTRADA
             $hora_actual = date('H:i:s');
             $estatus_asistencia = 'Puntual';
 
-            // Lógica de Retardos (10 minutos de tolerancia)
             if ($alumno['turno'] === 'Matutino' && $hora_actual > '07:10:00') {
                 $estatus_asistencia = 'Retardo';
             } elseif ($alumno['turno'] === 'Intermedio' && $hora_actual > '10:40:00') {
