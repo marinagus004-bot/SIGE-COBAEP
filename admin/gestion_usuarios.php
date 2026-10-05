@@ -110,6 +110,12 @@ $nombre_usuario = isset($_SESSION['nombre'])
                     <span>Gestión de Grupos</span>
                 </a>
 
+                <a href="gestion_horarios.php" class="nav-item">
+                    <i class="fas fa-calendar-days"></i>
+                    <span>Gestión de Horarios</span>
+                </a>
+                
+
                 <span class="nav-heading">Personal y Alumnado</span>
                 <a href="gestion_usuarios.php" class="nav-item active">
                     <i class="fas fa-users"></i>
@@ -259,7 +265,6 @@ $nombre_usuario = isset($_SESSION['nombre'])
                                 <option value="">Turno</option>
                                 <option value="Matutino">Matutino</option>
                                 <option value="Intermedio">Intermedio</option>
-                                <option value="Vespertino">Vespertino</option>
                             </select>
                         </div>
                     <?php endif; ?>

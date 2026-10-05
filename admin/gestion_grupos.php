@@ -69,6 +69,11 @@ $nombre_usuario = isset($_SESSION['nombre'])
                     <i class="fas fa-users-rectangle"></i>
                     <span>Gestión de Grupos</span>
                 </a>
+                
+                <a href="gestion_horarios.php" class="nav-item">
+                    <i class="fas fa-calendar-days"></i>
+                    <span>Gestión de Horarios</span>
+                </a>
 
                 <span class="nav-heading">Personal</span>
                 <a href="gestion_usuarios.php" class="nav-item">

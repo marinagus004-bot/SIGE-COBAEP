@@ -111,7 +111,7 @@ try {
                 </a>
                 <a href="creacion_reportes.php" class="nav-item active">
                     <i class="fa-solid fa-file-lines"></i>
-                    <span>Creacion de Reporte</span>
+                    <span>Creación de Reporte de Conducta</span>
                 </a>  
                 <!-- NUEVO MÓDULO EN EL MENÚ -->
                 <a href="expediente_alumnos.php" class="nav-item">
@@ -177,7 +177,7 @@ try {
             <!-- FORMULARIO DE CAPTURA -->
             <article class="form-reporte">
                 <div class="card-heading" style="margin-bottom: 20px;">
-                    <h2><i class="fas fa-file-signature" style="color: var(--green); margin-right: 8px;"></i> Nuevo Reporte</h2>
+                    <h2><i class="fas fa-file-signature" style="color: var(--green); margin-right: 8px;"></i> Nuevo Reporte de Conducta</h2>
                 </div>
 
                 <form action="procesos/guardar_reporte.php" method="POST" id="formReporte">
