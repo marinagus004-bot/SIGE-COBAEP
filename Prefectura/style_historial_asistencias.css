@@ -1,0 +1,44 @@
+html {
+    overflow-y: scroll;
+}
+.filter-bar {
+    display: flex; gap: 15px; background: #ffffff; padding: 20px;
+    border-radius: var(--radius-md); border: 1px solid var(--line);
+    margin-bottom: 25px; flex-wrap: wrap; align-items: flex-end;
+}
+.filter-group { flex: 1; min-width: 200px; }
+.filter-group label { display: block; font-size: 0.75rem; font-weight: 700; color: var(--muted); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em; }
+.filter-input { width: 100%; padding: 0.6rem; border: 1px solid var(--line); border-radius: var(--radius-sm); font-family: inherit; }
+.btn-filter { background: var(--green); color: white; border: none; padding: 0.7rem 1.5rem; border-radius: var(--radius-sm); font-weight: 700; cursor: pointer; transition: 0.2s; }
+.btn-filter:hover { background: var(--green-700); }
+.btn-clear { background: var(--background); color: var(--muted); border: 1px solid var(--line); padding: 0.7rem 1.5rem; border-radius: var(--radius-sm); font-weight: 700; cursor: pointer; text-decoration: none; transition: 0.2s; display: inline-flex; align-items: center; }
+.btn-clear:hover { background: #e8efeb; color: var(--ink); }
+
+.date-divider td {
+    background-color: #f0fdf4 !important; color: var(--green-700) !important;
+    font-weight: 800 !important; font-size: 0.85rem; padding: 0.8rem 1.5rem !important;
+    border-bottom: 2px solid var(--green-soft) !important; text-transform: uppercase; letter-spacing: 0.05em;
+}
+.table-responsive { 
+    width: 100%; 
+    overflow-x: auto; 
+    overflow-y: auto; 
+    max-height: 500px; /* Límite para activar el scroll */
+    margin-top: 20px; 
+    border-radius: var(--radius-md); 
+    border: 1px solid var(--line);
+}
+
+.btn-justificar {
+    background-color: #f59e0b; color: white; border: none; padding: 0.4rem 0.8rem;
+    border-radius: var(--radius-sm); font-size: 0.75rem; font-weight: 700;
+    cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 5px;
+}
+.btn-justificar:hover { background-color: #d97706; }
+
+/* NUEVOS ESTILOS PARA FALTAS Y JUSTIFICACIONES */
+.status-falta { background-color: #fee2e2; color: #b91c1c; }
+.status-justificada { background-color: #dbeafe; color: #1d4ed8; }
+
+.fila-falta { background-color: #fff1f2; }
+.fila-falta td { background-color: #fff1f2 !important; border-bottom: 1px solid #fecdd3; }
