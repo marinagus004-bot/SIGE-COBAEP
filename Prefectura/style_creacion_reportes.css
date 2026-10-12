@@ -1,0 +1,137 @@
+        /* =========================================
+   SCROLL PARA LA TABLA DE HISTORIAL
+   ========================================= */
+.overview-card .table-responsive {
+    max-height: 450px; /* Límite de altura. Puedes hacer este número más grande o pequeño */
+    overflow-y: auto;  /* Activa la barra de desplazamiento solo cuando se excede la altura */
+}
+
+/* Mantiene fijos los títulos de las columnas al hacer scroll hacia abajo */
+.overview-card .table-responsive thead th {
+    position: sticky;
+    top: 0;
+    background-color: #ffffff; 
+    z-index: 10;
+    box-shadow: 0 1px 0 var(--line); /* Línea inferior para separar el título del contenido */
+}
+
+/* Diseño personalizado para que la barra de scroll se vea moderna y delgada */
+.overview-card .table-responsive::-webkit-scrollbar {
+    width: 6px;
+}
+.overview-card .table-responsive::-webkit-scrollbar-track {
+    background: transparent;
+}
+.overview-card .table-responsive::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+.overview-card .table-responsive::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+
+        /* =========================================
+           NUEVO DISEÑO: FORMULARIO DE REPORTES
+           ========================================= */
+        .reportes-container { display: grid; grid-template-columns: 1fr 2fr; gap: 25px; align-items: start; }
+        .form-reporte { background: #ffffff; padding: 25px; border-radius: var(--radius-md); border: 1px solid var(--line); box-shadow: var(--shadow-sm); }
+        
+        .input-group { display: flex; gap: 8px; }
+        .input-group .form-control { flex: 1; margin-bottom: 0; }
+        .btn-icon-search { background: var(--green); color: white; border: none; border-radius: var(--radius-sm); padding: 0 15px; cursor: pointer; transition: 0.2s; display: grid; place-items: center; }
+        .btn-icon-search:hover { background: var(--green-700); }
+
+        .student-profile { display: none; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--radius-sm); padding: 15px; margin-top: 15px; align-items: center; gap: 15px; animation: fadeIn 0.3s ease; }
+        .student-profile.active { display: flex; }
+        .student-profile.error { display: block; background: #fef2f2; border-color: #fecaca; color: #b91c1c; text-align: center; padding: 15px; }
+        .sp-avatar { width: 45px; height: 45px; background: var(--green-soft); color: var(--green-700); border-radius: 50%; display: grid; place-items: center; font-size: 1.2rem; flex-shrink: 0; }
+        .sp-info { flex: 1; }
+        .sp-info h4 { margin: 0 0 2px 0; font-size: 0.95rem; color: var(--ink); font-weight: 700; }
+        .sp-info p { margin: 0; font-size: 0.75rem; color: var(--muted); }
+        .sp-points { text-align: right; }
+        .pts-badge { 
+    padding: 6px 12px; 
+    border-radius: var(--radius-sm); 
+    font-size: 0.85rem; 
+    font-weight: 800; 
+    text-align: center;
+    display: inline-block;
+    line-height: 1.2;
+}
+.pts-badge.good { background: #dcfce7; color: #166534; }
+.pts-badge.warning { background: #fef08a; color: #a16207; }
+.pts-badge.danger { background: #fecaca; color: #991b1b; }
+.pts-badge.critical { background: #000000; color: #ffffff; }
+
+        .custom-select-container { position: relative; width: 100%; user-select: none; }
+        .custom-select-trigger { display: flex; justify-content: space-between; align-items: center; padding: 0.85rem; border: 1px solid var(--line); border-radius: var(--radius-sm); background: #fff; cursor: pointer; font-size: 0.85rem; color: var(--muted); transition: 0.2s ease; }
+        .custom-select-trigger.selected { color: var(--ink); border-color: var(--green); }
+        .custom-select-options { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid var(--line); border-radius: var(--radius-sm); margin-top: 5px; box-shadow: var(--shadow-md); z-index: 100; display: none; overflow: hidden; }
+        .custom-select-options.open { display: block; }
+        .custom-select-search { padding: 10px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 8px; background: #f8fafc; }
+        .custom-select-search input { width: 100%; border: none; background: transparent; outline: none; font-size: 0.85rem; color: var(--ink); }
+        .custom-select-search i { color: var(--muted); font-size: 0.8rem; }
+        .options-list { max-height: 200px; overflow-y: auto; list-style: none; padding: 0; margin: 0; }
+        .option-item { padding: 10px 15px; font-size: 0.8rem; color: var(--ink); cursor: pointer; border-bottom: 1px solid #f1f5f9; transition: background 0.2s; }
+        .option-item:hover { background: var(--green-soft); color: var(--green-700); }
+        .option-item span.pts { float: right; color: #b91c1c; font-weight: bold; font-size: 0.75rem; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .search-bar { display: flex; gap: 10px; padding: 15px 24px; background: #fafafa; border-bottom: 1px solid var(--line); }
+        .search-bar input { flex: 1; padding: 0.6rem; border: 1px solid var(--line); border-radius: var(--radius-sm); }
+        .btn-search { background: var(--background); border: 1px solid var(--line); padding: 0 1rem; border-radius: var(--radius-sm); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        
+        @media (max-width: 992px) { .reportes-container { grid-template-columns: 1fr; } }
+
+
+
+        /* =========================================
+   SEPARADOR DE FECHAS EN TABLA
+   ========================================= */
+.date-divider td {
+    background-color: #f0fdf4 !important; 
+    color: var(--green-700) !important;
+    font-weight: 800 !important; 
+    font-size: 0.85rem; 
+    padding: 0.8rem 1.5rem !important;
+    border-bottom: 2px solid var(--green-soft) !important; 
+    text-transform: uppercase; 
+    letter-spacing: 0.05em;
+    
+}
+
+/* =========================================
+   BOTONES DE ACCIÓN (Ver, Editar, Eliminar)
+   ========================================= */
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+.btn-action {
+    border: none;
+    background: transparent;
+    width: 30px;
+    height: 30px;
+    border-radius: var(--radius-sm);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: 0.2s ease;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+.btn-view:hover { background: #e0f2fe; color: #0284c7; } /* Azul */
+.btn-edit:hover { background: #fef08a; color: #ca8a04; } /* Amarillo */
+.btn-delete:hover { background: #fee2e2; color: #dc2626; } /* Rojo */
+
+/* Hacer que el botón inactivo se vea gris */
+#btnSubmit:disabled {
+    background-color: #cbd5e1 !important;
+    color: #64748b !important;
+    cursor: not-allowed !important;
+    box-shadow: none !important;
+}
