@@ -228,8 +228,14 @@
 }
 
 /* Tabla Estilizada */
-.table-responsive {
-    overflow-x: auto;
+.table-responsive { 
+    width: 100%; 
+    overflow-x: auto; 
+    overflow-y: auto; 
+    max-height: 660px; /* Límite para activar el scroll */
+    margin-top: 20px; 
+    border-radius: var(--radius-md); 
+    border: 1px solid var(--line);
 }
 
 .modern-table {

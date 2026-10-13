@@ -37,23 +37,22 @@ try {
 
         // Extraer las generaciones (años) dinámicamente del periodo o matrícula
         foreach ($registros as $row) {
-            $texto_anio = !empty($row['periodo_ingreso']) ? $row['periodo_ingreso'] : $row['identificador'];
+            $texto_anio = !empty($row['periodo_ingreso']) ? $row['periodo_ingreso'] :$row['identificador'];
             // Buscamos cualquier año que empiece con 20 (ej. 2023, 2025, 2027)
-            if (preg_match('/(20\d{2})/', $texto_anio, $matches)) {
-                $generaciones_unicas[$matches[1]] = $matches[1];
+            if (preg_match('/(20\d{2})/', $texto_anio, $matches)) {$generaciones_unicas[$matches[1]] =$matches[1];
             }
         }
         // Ordenamos los años de mayor a menor
         rsort($generaciones_unicas);
 
     } elseif ($tipo == 'prefectos') {
-        $stmt = $pdo->query("SELECT id_prefecto AS id, usuario AS identificador, CONCAT_WS(' ', nombre, apellido_paterno, apellido_materno) AS nombre_completo, 'Prefecto' AS rol FROM PREFECTOS ORDER BY nombre ASC");
-        $registros = $stmt->fetchAll();
+        $stmt =$pdo->query("SELECT id_prefecto AS id, usuario AS identificador, CONCAT_WS(' ', nombre, apellido_paterno, apellido_materno) AS nombre_completo, 'Prefecto' AS rol FROM PREFECTOS ORDER BY nombre ASC");
+        $registros =$stmt->fetchAll();
 
     } else {
         $tipo = 'maestros'; 
-        $stmt = $pdo->query("SELECT id_maestro AS id, usuario AS identificador, CONCAT_WS(' ', nombre, apellido_paterno, apellido_materno) AS nombre_completo, 'Docente' AS rol FROM MAESTROS ORDER BY nombre ASC");
-        $registros = $stmt->fetchAll();
+        $stmt =$pdo->query("SELECT id_maestro AS id, usuario AS identificador, CONCAT_WS(' ', nombre, apellido_paterno, apellido_materno) AS nombre_completo, 'Docente' AS rol FROM MAESTROS ORDER BY nombre ASC");
+        $registros =$stmt->fetchAll();
     }
 } catch (PDOException $e) {
     die("Error de BD: " . $e->getMessage());
@@ -188,7 +187,7 @@ $nombre_usuario = isset($_SESSION['nombre'])
             <!-- Grupo de Botones de Acción (Derecha) -->
             <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
                 
-                <button href="importar_alumnos.php" type="button" class="btn-primary-add" style="background: #0d9488; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(13, 148, 136, 0.2);" onclick="abrirModalImportar()">
+                <button type="button" class="btn-primary-add" style="background: #0d9488; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(13, 148, 136, 0.2);" onclick="abrirModalImportar()">
                     <i class="fas fa-file-import"></i> Importar Lista
                 </button>
 
@@ -200,6 +199,37 @@ $nombre_usuario = isset($_SESSION['nombre'])
 
         </div>
 
+        <!-- ========================================== -->
+        <!-- ALERTAS DE IMPORTACIÓN DE ALUMNOS AÑADIDAS -->
+        <!-- ========================================== -->
+        <?php if(isset($_GET['msg']) &&$_GET['msg'] == 'import_success'): ?>
+            <div class="alert alert-success" style="background: #ecfdf5; color: #065f46; padding: 20px; border-radius: 12px; margin-top: 15px; margin-bottom: 25px; border: 1px solid #a7f3d0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+                <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                    <i class="fas fa-check-circle" style="font-size: 1.5rem; margin-right: 10px;"></i>
+                    <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700;">Importación masiva finalizada con éxito</h3>
+                </div>
+                <ul style="margin: 0; padding-left: 35px; list-style-type: none; line-height: 1.6; font-size: 0.95rem;">
+                    <li><i class="fas fa-user-check" style="width: 20px; color: #10b981;"></i> <strong><?php echo htmlspecialchars($_GET['reg'] ?? 0); ?></strong> alumnos registrados e inscritos.</li>
+                    
+                    <?php if(isset($_GET['grp']) &&$_GET['grp'] > 0): ?>
+                    <li><i class="fas fa-users-rectangle" style="width: 20px; color: #059669;"></i> <strong><?php echo htmlspecialchars($_GET['grp']); ?></strong> grupos nuevos creados automáticamente.</li>
+                    <?php endif; ?>
+                    
+                    <?php if(isset($_GET['dup']) &&$_GET['dup'] > 0): ?>
+                    <li><i class="fas fa-exclamation-triangle" style="width: 20px; color: #d97706;"></i> <strong><?php echo htmlspecialchars($_GET['dup']); ?></strong> alumnos omitidos (ya existía su matrícula).</li>
+                    <?php endif; ?>
+                </ul>
+            </div>
+        <?php endif; ?>
+
+        <?php if(isset($_GET['msg']) &&$_GET['msg'] == 'import_error'): ?>
+            <div class="alert alert-error" style="background: #fef2f2; color: #991b1b; padding: 15px; border-radius: 12px; margin-top: 15px; margin-bottom: 25px; border: 1px solid #fecaca;">
+                <i class="fas fa-times-circle" style="font-size: 1.2rem; margin-right: 8px;"></i> <strong>Error:</strong> No se pudo procesar el archivo CSV. Asegúrate de que el formato sea correcto.
+            </div>
+        <?php endif; ?>
+        <!-- ========================================== -->
+        <!-- FIN ALERTAS                                -->
+        <!-- ========================================== -->
         
         <!-- Pestañas -->
         <div class="tabs-container">
@@ -231,7 +261,7 @@ $nombre_usuario = isset($_SESSION['nombre'])
                             <i class="fas fa-calendar-alt"></i>
                             <select id="filtroGeneracion">
                                 <option value="">Generación</option>
-                                <?php foreach($generaciones_unicas as $anio): ?>
+                                <?php foreach($generaciones_unicas as$anio): ?>
                                     <option value="<?php echo htmlspecialchars($anio); ?>"><?php echo htmlspecialchars($anio); ?></option>
                                 <?php endforeach; ?>
                             </select>
@@ -283,7 +313,7 @@ $nombre_usuario = isset($_SESSION['nombre'])
                     </thead>
                     <tbody id="cuerpoTabla">
                         <?php if(count($registros) > 0): ?>
-                            <?php foreach($registros as $row): 
+                            <?php foreach($registros as$row): 
                                 $words = explode(" ", trim($row['nombre_completo']));
                                 $initials = mb_substr($words[0], 0, 1, "UTF-8");
                                 if(count($words) > 1) {
@@ -323,10 +353,10 @@ $nombre_usuario = isset($_SESSION['nombre'])
                                     </td>
                                     <td>
                                         <div class="action-buttons">
-                                            <a href="editar_usuario.php?id=<?php echo $row['id']; ?>&tipo=<?php echo $tipo; ?>" class="btn-action edit">
+                                            <a href="editar_usuario.php?id=<?php echo $row['id']; ?>&tipo=<?php echo$tipo; ?>" class="btn-action edit">
                                                 <i class="fas fa-pen"></i> Editar
                                             </a>
-                                            <a href="../procesos/eliminar_usuario.php?id=<?php echo $row['id']; ?>&tipo=<?php echo $tipo; ?>" 
+                                            <a href="../procesos/eliminar_usuario.php?id=<?php echo $row['id']; ?>&tipo=<?php echo$tipo; ?>" 
                                                class="btn-action delete" 
                                                onclick="return confirm('¿Seguro que deseas eliminar este registro?');">
                                                 <i class="fas fa-trash"></i> Eliminar
@@ -553,6 +583,29 @@ $nombre_usuario = isset($_SESSION['nombre'])
             if (selectSemestre) selectSemestre.addEventListener('change', aplicarFiltros);
             if (selectGrupo) selectGrupo.addEventListener('change', aplicarFiltros);
             if (selectTurno) selectTurno.addEventListener('change', aplicarFiltros);
+        });
+    </script>
+
+    <!-- Script para ocultar las alertas automáticamente después de 5 segundos -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const alertas = document.querySelectorAll('.alert');
+            
+            if (alertas.length > 0) {
+                setTimeout(() => {
+                    alertas.forEach(alerta => {
+                        // Animación suave de salida
+                        alerta.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                        alerta.style.opacity = '0';
+                        alerta.style.transform = 'translateY(-10px)';
+                        
+                        // Remover el elemento del espacio visual una vez que es invisible
+                        setTimeout(() => {
+                            alerta.style.display = 'none';
+                        }, 500);
+                    });
+                }, 5000); // 5000 = 5 segundos (puedes cambiarlo a 3000 si lo quieres más rápido)
+            }
         });
     </script>
 </body>

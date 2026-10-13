@@ -462,7 +462,7 @@ $nombre_usuario = isset($_SESSION['nombre'])
                                 name="nombre_grupo"
                                 id="nombre_grupo"
                                 class="clean-input"
-                                placeholder="Ej. A, B, C"
+                                placeholder="Ej. A, B, C , D"
                                 required
                                 maxlength="1"
                                 autocomplete="off"
@@ -513,10 +513,6 @@ $nombre_usuario = isset($_SESSION['nombre'])
 
                                     <option value="Intermedio">
                                         Intermedio
-                                    </option>
-
-                                    <option value="Vespertino">
-                                        Vespertino
                                     </option>
 
                                 </select>

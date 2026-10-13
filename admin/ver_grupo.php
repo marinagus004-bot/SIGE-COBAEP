@@ -177,11 +177,75 @@ $nombre_usuario = isset($_SESSION['nombre']) ? htmlspecialchars($_SESSION['nombr
             </div>
             <div class="group-actions">
                 <a href="gestion_grupos.php" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Volver</a>
+                <!-- NUEVO BOTÓN EXCEL -->
+                <button type="button" class="btn btn-primary" id="btnAbrirModalExcel" style="background-color: #0d9488;">
+                    <i class="fas fa-file-import"></i> Cargar Excel
+                </button>
                 <button type="button" class="btn btn-primary" id="btnAbrirModal">
-                    <i class="fas fa-user-plus"></i> Inscribir Alumno
+                    <i class="fas fa-user-plus"></i> Inscribir Alumnos
                 </button>
             </div>
         </div>
+
+        <!-- Alertas de éxito o error -->
+        <?php if(isset($_GET['msg']) && $_GET['msg'] == 'inscritos_multiples'): ?>
+            <div class="alert alert-success" style="background: #ecfdf5; color: #065f46; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #a7f3d0;">
+                <i class="fas fa-check-circle"></i> Los alumnos seleccionados fueron inscritos correctamente.
+            </div>
+        <?php endif; ?>
+        <?php if(isset($_GET['msg']) && $_GET['msg'] == 'excel_procesado'): ?>
+            <div class="alert alert-success" style="background: #ecfdf5; color: #065f46; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #a7f3d0;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <i class="fas fa-check-circle"></i> Archivo procesado. Se inscribieron <strong><?php echo htmlspecialchars($_GET['cantidad']); ?></strong> alumnos.
+                        
+                        <?php if(isset($_GET['omitidos']) && $_GET['omitidos'] > 0): ?>
+                            <div style="margin-top: 5px; color: #b45309; font-size: 0.95rem;">
+                                <i class="fas fa-exclamation-triangle"></i> 
+                                Se omitieron <b><?php echo htmlspecialchars($_GET['omitidos']); ?> alumno(s)</b> porque ya se encuentran inscritos en otro grupo activo.
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                    <?php if(isset($_GET['omitidos']) && $_GET['omitidos'] > 0): ?>
+                        <button type="button" id="btnVerOmitidos" class="btn btn-primary" style="background: #b45309; border: none; font-size: 0.9rem; padding: 8px 15px;">
+                            <i class="fas fa-list"></i> Ver Detalles
+                        </button>
+                    <?php endif; ?>
+                </div>
+            </div>
+        <?php endif; ?>
+        <!-- ===== MODAL DE ALUMNOS OMITIDOS ===== -->
+        <?php if(isset($_SESSION['detalles_omitidos'])): ?>
+        <div id="modalOmitidos" class="modal-overlay">
+            <div class="modal-content" style="max-width: 600px;">
+                <div class="modal-header">
+                    <h2><i class="fas fa-exclamation-triangle" style="color: #b45309;"></i> Detalles de Omisión</h2>
+                    <button class="close-modal" id="btnCerrarOmitidos">&times;</button>
+                </div>
+                <div class="modal-body" style="max-height: 400px; overflow-y: auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>MATRÍCULA</th>
+                                <th>MOTIVO</th>
+                                <th>GRUPO ACTUAL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach($_SESSION['detalles_omitidos'] as $omitido): ?>
+                            <tr>
+                                <td><strong><?php echo htmlspecialchars($omitido['matricula']); ?></strong></td>
+                                <td style="color: #b45309;">Inscrito en otro grupo</td>
+                                <td><span class="badge status-active"><?php echo htmlspecialchars($omitido['grupo']); ?></span></td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <?php unset($_SESSION['detalles_omitidos']); // Limpiamos la sesión después de mostrarla ?>
+        <?php endif; ?>
 
         <!-- Tabla de Alumnos Inscritos -->
         <div class="content-card">
@@ -236,61 +300,95 @@ $nombre_usuario = isset($_SESSION['nombre']) ? htmlspecialchars($_SESSION['nombr
 
     </main>
 
-    <!-- ===== MODAL DE INSCRIPCIÓN RÁPIDA ===== -->
+    <!-- ===== MODAL DE INSCRIPCIÓN RÁPIDA (MÚLTIPLE) ===== -->
     <div id="modalInscribir" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
-                <h2><i class="fas fa-user-plus"></i> Inscribir Alumno Existente</h2>
+                <h2><i class="fas fa-user-plus"></i> Inscribir Alumnos Existentes</h2>
                 <button class="close-modal" id="btnCerrarModal">&times;</button>
             </div>
             
-            <div class="modal-body">
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="buscadorDisponibles" placeholder="Buscar por matrícula o nombre del alumno...">
-                </div>
+            <!-- EL FORMULARIO AHORA ENVUELVE TODA LA TABLA -->
+            <form action="../procesos/inscribir_multiples.php" method="POST">
+                <input type="hidden" name="id_grupo" value="<?php echo $id_grupo; ?>">
+                
+                <div class="modal-body">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="buscadorDisponibles" placeholder="Buscar por matrícula o nombre...">
+                    </div>
 
-                <div class="disponibles-list">
-                    <table class="data-table">
-                        <tbody>
-                            <?php if(count($alumnos_disponibles) > 0): ?>
-                                <?php foreach($alumnos_disponibles as $disp): ?>
-                                <tr class="fila-disponible">
-                                    <td>
-                                        <strong><?php echo htmlspecialchars($disp['matricula']); ?></strong><br>
-                                        <span class="text-muted" style="font-size: 0.75rem;">Ingreso: <?php echo htmlspecialchars($disp['periodo_ingreso'] ?? 'N/A'); ?></span>
-                                    </td>
-                                    <td style="font-size: 0.9rem; font-weight: 500;"><?php echo htmlspecialchars($disp['nombre_completo']); ?></td>
-                                    <td style="text-align: right;">
-                                        <!-- Formulario para inscribir al alumno seleccionado -->
-                                        <form action="inscribir_existente.php" method="POST">
-                                            <input type="hidden" name="id_grupo" value="<?php echo $id_grupo; ?>">
-                                            <input type="hidden" name="id_alumno" value="<?php echo $disp['id_alumno']; ?>">
-                                            <button type="submit" class="btn btn-primary" style="padding: 8px 16px; font-size: 0.85rem; border-radius: 8px;">
-                                                <i class="fas fa-plus"></i> Añadir
-                                            </button>
-                                        </form>
-                                    </td>
-                                </tr>
-                                <?php endforeach; ?>
-                            <?php else: ?>
+                    <div class="disponibles-list">
+                        <table class="data-table">
+                            <thead>
                                 <tr>
-                                    <td colspan="3" style="text-align: center; color: #6b7280; padding: 30px;">
-                                        No hay alumnos en estatus de "Alta" disponibles para agregar.
-                                    </td>
+                                    <th style="width: 40px; text-align: center;">
+                                        <input type="checkbox" id="selectAll" title="Seleccionar todos">
+                                    </th>
+                                    <th>MATRÍCULA</th>
+                                    <th>NOMBRE</th>
                                 </tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                <?php if(count($alumnos_disponibles) > 0): ?>
+                                    <?php foreach($alumnos_disponibles as $disp): ?>
+                                    <tr class="fila-disponible">
+                                        <td style="text-align: center;">
+                                            <!-- CHECKBOX PARA CADA ALUMNO -->
+                                            <input type="checkbox" name="alumnos_seleccionados[]" value="<?php echo $disp['id_alumno']; ?>" class="chk-alumno">
+                                        </td>
+                                        <td>
+                                            <strong><?php echo htmlspecialchars($disp['matricula']); ?></strong><br>
+                                            <span class="text-muted" style="font-size: 0.75rem;">Ingreso: <?php echo htmlspecialchars($disp['periodo_ingreso'] ?? 'N/A'); ?></span>
+                                        </td>
+                                        <td style="font-size: 0.9rem; font-weight: 500;">
+                                            <?php echo htmlspecialchars($disp['nombre_completo']); ?>
+                                        </td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr>
+                                        <td colspan="3" style="text-align: center; color: #6b7280; padding: 30px;">
+                                            No hay alumnos en estatus de "Alta" disponibles para agregar.
+                                        </td>
+                                    </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
 
-            <div class="modal-footer">
-                <p>¿El alumno es nuevo en el plantel?</p>
-                <a href="agregar_usuario.php?grupo=<?php echo $id_grupo; ?>" class="btn-link">
-                    Regístralo desde cero
-                </a>
+                <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+                    <span id="contadorSeleccionados" style="font-weight: 600; color: #16a05d;">0 seleccionados</span>
+                    <button type="submit" class="btn btn-primary" style="padding: 10px 20px;">
+                        <i class="fas fa-save"></i> Inscribir Seleccionados
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===== MODAL PARA IMPORTAR POR EXCEL ===== -->
+    <div id="modalExcel" class="modal-overlay">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2><i class="fas fa-file-excel"></i> Inscribir por Excel/CSV</h2>
+                <button class="close-modal" id="btnCerrarModalExcel">&times;</button>
             </div>
+            <form action="Procesos/inscribirAlumnos_excel.php" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="id_grupo" value="<?php echo $id_grupo; ?>">
+                <div class="modal-body">
+                    <p style="font-size: 0.9rem; color: #6b7280; margin-bottom: 15px;">
+                        Sube un archivo <b>CSV (delimitado por comas)</b> que contenga una columna con las <b>Matrículas</b> de los alumnos que deseas inscribir a este grupo (sin encabezados u otra información ajena).
+                    </p>
+                    <input type="file" name="archivo_csv" accept=".csv" required style="width: 100%; padding: 12px; border: 2px dashed #cbd5e1; border-radius: 8px; cursor: pointer;">
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" style="width: 100%; background-color: #0d9488;">
+                        <i class="fas fa-upload"></i> Procesar Archivo
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -353,26 +451,27 @@ $nombre_usuario = isset($_SESSION['nombre']) ? htmlspecialchars($_SESSION['nombr
                 });
             }
 
-            // LÓGICA DEL MODAL DE INSCRIPCIÓN RÁPIDA
-            const modal = document.getElementById('modalInscribir');
-            const btnAbrir = document.getElementById('btnAbrirModal');
-            const btnCerrar = document.getElementById('btnCerrarModal');
+            // LÓGICA DEL MODAL DE INSCRIPCIÓN MÚLTIPLE (CHECKBOXES)
+            const modalInscribir = document.getElementById('modalInscribir');
+            const btnAbrirInscribir = document.getElementById('btnAbrirModal');
+            const btnCerrarInscribir = document.getElementById('btnCerrarModal');
 
-            if (modal && btnAbrir && btnCerrar) {
-                btnAbrir.addEventListener('click', () => modal.classList.add('active'));
-                btnCerrar.addEventListener('click', () => modal.classList.remove('active'));
-                modal.addEventListener('click', (e) => {
-                    if (e.target === modal) modal.classList.remove('active');
+            if (modalInscribir && btnAbrirInscribir && btnCerrarInscribir) {
+                btnAbrirInscribir.addEventListener('click', () => modalInscribir.classList.add('active'));
+                btnCerrarInscribir.addEventListener('click', () => modalInscribir.classList.remove('active'));
+                modalInscribir.addEventListener('click', (e) => {
+                    if (e.target === modalInscribir) modalInscribir.classList.remove('active');
                 });
 
-                // Buscador dentro del modal
+                // Buscador dentro del modal de inscripción (¡Actualizado para las nuevas posiciones de columnas!)
                 const buscadorModal = document.getElementById('buscadorDisponibles');
                 const filasDisponibles = document.querySelectorAll('.fila-disponible');
                 buscadorModal.addEventListener('keyup', function() {
                     const texto = this.value.toLowerCase();
                     filasDisponibles.forEach(fila => {
-                        const matricula = fila.children[0].textContent.toLowerCase();
-                        const nombre = fila.children[1].textContent.toLowerCase();
+                        // El índice cambió: [0] es checkbox, [1] es matrícula, [2] es nombre
+                        const matricula = fila.children[1].textContent.toLowerCase();
+                        const nombre = fila.children[2].textContent.toLowerCase();
                         if (matricula.includes(texto) || nombre.includes(texto)) {
                             fila.style.display = '';
                         } else {
@@ -380,7 +479,60 @@ $nombre_usuario = isset($_SESSION['nombre']) ? htmlspecialchars($_SESSION['nombr
                         }
                     });
                 });
+
+                // Lógica para Seleccionar Todos los checkboxes
+                const selectAll = document.getElementById('selectAll');
+                const checkboxes = document.querySelectorAll('.chk-alumno');
+                const contadorText = document.getElementById('contadorSeleccionados');
+
+                function actualizarContador() {
+                    const seleccionados = document.querySelectorAll('.chk-alumno:checked').length;
+                    contadorText.textContent = seleccionados + ' seleccionado(s)';
+                }
+
+                if (selectAll) {
+                    selectAll.addEventListener('change', function() {
+                        checkboxes.forEach(chk => {
+                            // Solo marcar/desmarcar si la fila es visible (por si usaron el buscador)
+                            if (chk.closest('tr').style.display !== 'none') {
+                                chk.checked = this.checked;
+                            }
+                        });
+                        actualizarContador();
+                    });
+                }
+
+                checkboxes.forEach(chk => {
+                    chk.addEventListener('change', actualizarContador);
+                });
             }
+
+            // LÓGICA DEL MODAL DE EXCEL
+            const modalExcel = document.getElementById('modalExcel');
+            const btnAbrirExcel = document.getElementById('btnAbrirModalExcel');
+            const btnCerrarExcel = document.getElementById('btnCerrarModalExcel');
+
+            if (btnAbrirExcel && modalExcel && btnCerrarExcel) {
+                btnAbrirExcel.addEventListener('click', () => modalExcel.classList.add('active'));
+                btnCerrarExcel.addEventListener('click', () => modalExcel.classList.remove('active'));
+                modalExcel.addEventListener('click', (e) => {
+                    if (e.target === modalExcel) modalExcel.classList.remove('active');
+                });
+            }
+           
+            // LÓGICA DEL MODAL DE OMITIDOS
+            const modalOmitidos = document.getElementById('modalOmitidos');
+            const btnVerOmitidos = document.getElementById('btnVerOmitidos');
+            const btnCerrarOmitidos = document.getElementById('btnCerrarOmitidos');
+
+            if (btnVerOmitidos && modalOmitidos && btnCerrarOmitidos) {
+                btnVerOmitidos.addEventListener('click', () => modalOmitidos.classList.add('active'));
+                btnCerrarOmitidos.addEventListener('click', () => modalOmitidos.classList.remove('active'));
+                modalOmitidos.addEventListener('click', (e) => {
+                    if (e.target === modalOmitidos) modalOmitidos.classList.remove('active');
+                });
+            }
+
         });
     </script>
 </body>
