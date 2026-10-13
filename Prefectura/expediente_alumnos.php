@@ -21,7 +21,16 @@ $alumno = null;
 $historial = [];
 
 if (!empty($matricula_buscada)) {
-    $stmt_alumno = $pdo->prepare("SELECT id_alumno, matricula, nombre, apellido_paterno, semestre, turno, puntos_conducta FROM alumnos WHERE matricula = :matricula LIMIT 1");
+    // NUEVA CONSULTA: Hacemos JOIN con grupo_alumno y grupos para obtener el Semestre, Grupo y Turno reales
+    $stmt_alumno = $pdo->prepare("
+        SELECT a.id_alumno, a.matricula, a.nombre, a.apellido_paterno, a.puntos_conducta, 
+               g.semestre, g.nombre_grupo, g.turno
+        FROM alumnos a
+        LEFT JOIN grupo_alumno ga ON a.id_alumno = ga.id_alumno
+        LEFT JOIN grupos g ON ga.id_grupo = g.id_grupo
+        WHERE a.matricula = :matricula 
+        LIMIT 1
+    ");
     $stmt_alumno->execute([':matricula' => $matricula_buscada]);
     $alumno = $stmt_alumno->fetch(PDO::FETCH_ASSOC);
 
@@ -71,16 +80,34 @@ if (!empty($matricula_buscada)) {
 <body>
     
     <aside class="sidebar" id="sidebar">
+        <button id="collapseToggle" class="collapse-toggle" aria-label="Colapsar menú">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+
         <div class="sidebar-inner">
-            <div class="brand"><img src="../img/LogoCobaep.png" alt="Logo COBAEP" class="brand-logo"><div class="brand-copy"><strong>SIGE<span>-Cobaep</span></strong><small>Plantel 27</small></div></div>
+            <div class="brand">
+                <img src="../img/LogoCobaep.png" alt="Logo COBAEP" class="brand-logo">
+                <div class="brand-copy">
+                    <strong>SIGE<span>-Cobaep</span></strong><small>Plantel 27</small>
+                </div>
+            </div>
+
             <nav class="navigation" aria-label="Navegación principal">
                 <span class="nav-heading">Menú principal</span>
                 <a href="dashboard_prefectura.php" class="nav-item"><i class="fas fa-shield-halved"></i><span>Control de Acceso</span></a>
-                <a href="historial_asistencias.php" class="nav-item"><i class="fas fa-history"></i><span>Historial y Reportes</span></a>
-                <a href="creacion_reportes.php" class="nav-item"><i class="fa-solid fa-file-lines"></i><span>Creacion de Reporte</span></a>  
+                <a href="monitoreo_grupos.php" class="nav-item"><i class="fas fa-users-viewfinder"></i><span>Monitoreo de Grupos</span></a>
+                <a href="historial_asistencias.php" class="nav-item"><i class="fas fa-history"></i><span>Historial de Asistencias</span></a>
+                <a href="creacion_reportes.php" class="nav-item"><i class="fa-solid fa-file-lines"></i><span>Creacion de Reporte de Conducta</span></a>  
                 <a href="expediente_alumnos.php" class="nav-item active"><i class="fas fa-folder-open"></i><span>Expediente de Alumnos</span></a>
             </nav>
-            <div class="sidebar-bottom"><a href="../logout.php" class="logout"><i class="fas fa-arrow-right-from-bracket"></i><span>Cerrar Sesión</span></a></div>
+
+            <div class="sidebar-bottom">
+                <div class="institution">
+                    <div class="institution-icon"><i class="fas fa-building-columns"></i></div>
+                    <div><strong>COBAEP Plantel 27</strong><span>Zaragoza, Puebla</span></div>
+                </div>
+                <a href="../logout.php" class="logout"><i class="fas fa-arrow-right-from-bracket"></i><span>Cerrar Sesión</span></a>
+            </div>
         </div>
     </aside>
 
@@ -117,7 +144,15 @@ if (!empty($matricula_buscada)) {
                 <div class="student-header">
                     <div>
                         <h2 style="margin: 0 0 5px 0; color: var(--ink); font-size: 1.5rem;"><?php echo htmlspecialchars($alumno['apellido_paterno'] . ' ' . $alumno['nombre']); ?></h2>
-                        <p style="margin: 0; color: var(--muted); font-size: 0.9rem;"><strong>Matrícula:</strong> <?php echo htmlspecialchars($alumno['matricula']); ?> | <strong>Grupo:</strong> <?php echo htmlspecialchars($alumno['semestre'] . ' - ' . $alumno['turno']); ?></p>
+                        <p style="margin: 0; color: var(--muted); font-size: 0.9rem;">
+                        <strong>Matrícula:</strong> <?php echo htmlspecialchars($alumno['matricula']); ?> | 
+                     <strong>Grupo:</strong> 
+            <?php 
+                     $grupo_texto = !empty($alumno['semestre']) ? $alumno['semestre'] . '° "' . $alumno['nombre_grupo'] . '"' : 'Sin Grupo';
+                     $turno_texto = !empty($alumno['turno']) ? $alumno['turno'] : 'N/A';
+                     echo htmlspecialchars($grupo_texto . ' - ' . $turno_texto); 
+                     ?>
+                 </p>
                     </div>
                     <div style="display: flex; gap: 20px; align-items: center;">
                         <?php 

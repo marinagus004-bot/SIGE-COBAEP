@@ -43,6 +43,34 @@ try {
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <?php
+    $mostrar_modal = '';
+    if (isset($_GET['msg'])) {
+        $txt = "Acción realizada con éxito.";
+        if($_GET['msg'] == 'exito_reporte') $txt = "El reporte de conducta fue emitido y guardado correctamente.";
+        if($_GET['msg'] == 'exito_actualizar') $txt = "El reporte ha sido modificado y los puntos fueron recalculados.";
+        if($_GET['msg'] == 'exito_eliminar') $txt = "Reporte eliminado. Los puntos de conducta han sido restaurados al alumno.";
+        
+        $mostrar_modal = "document.getElementById('modalExito').style.display = 'flex';
+                          if(document.getElementById('exitoText')) document.getElementById('exitoText').innerText = '$txt';";
+    } elseif (isset($_GET['error'])) {
+        $txt = "Ocurrió un error inesperado.";
+        if($_GET['error'] == 'password_incorrecta') $txt = "La contraseña ingresada es incorrecta. No se eliminó el reporte.";
+        if($_GET['error'] == 'alumno_no_encontrado') $txt = "La matrícula ingresada no existe en la base de datos.";
+        
+        $mostrar_modal = "document.getElementById('modalError').style.display = 'flex';
+                          if(document.getElementById('errorText')) document.getElementById('errorText').innerText = '$txt';";
+    }
+    
+    if (!empty($mostrar_modal)) {
+        echo "<script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    $mostrar_modal
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                });
+              </script>";
+    }
+    ?>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reportes de Conducta · COBAEP 27</title>
@@ -77,6 +105,7 @@ try {
             <div class="brand"><img src="../img/LogoCobaep.png" alt="Logo COBAEP" class="brand-logo"><div class="brand-copy"><strong>SIGE<span>-Cobaep</span></strong><small>Plantel 27</small></div></div>
              <nav class="navigation" aria-label="Navegación principal">
                 <span class="nav-heading">Menú principal</span>
+<<<<<<< HEAD
                 <a href="dashboard_prefectura.php" class="nav-item">
                     <i class="fas fa-shield-halved"></i>
                     <span>Control de Acceso</span>
@@ -94,10 +123,32 @@ try {
                     <i class="fas fa-folder-open"></i>
                     <span>Expediente de Alumnos</span>
                 </a>
+=======
+                <a href="dashboard_prefectura.php" class="nav-item"><i class="fas fa-shield-halved"></i><span>Control de Acceso</span></a>
+                <a href="monitoreo_grupos.php" class="nav-item"><i class="fas fa-users-viewfinder"></i><span>Monitoreo de Grupos</span></a>
+                <a href="historial_asistencias.php" class="nav-item"><i class="fas fa-history"></i><span>Historial de Asistencias</span></a>
+                <a href="creacion_reportes.php" class="nav-item active"><i class="fa-solid fa-file-lines"></i><span>Creacion de Reporte de Conducta</span></a>  
+                <a href="expediente_alumnos.php" class="nav-item"><i class="fas fa-folder-open"></i><span>Expediente de Alumnos</span></a>
+>>>>>>> 5ce40042e72aa801237a29560c47c1de9d41c116
             </nav>
-             <div class="sidebar-bottom"><a href="../logout.php" class="logout"><i class="fas fa-arrow-right-from-bracket"></i><span>Cerrar Sesión</span></a></div>
+            <div class="sidebar-bottom">
+                <div class="institution">
+                    <div class="institution-icon">
+                        <i class="fas fa-building-columns"></i>
+                    </div>
+                    <div>
+                        <strong>COBAEP Plantel 27</strong>
+                        <span>Zaragoza, Puebla</span>
+                    </div>
+                </div>
+                <a href="../logout.php" class="logout">
+                    <i class="fas fa-arrow-right-from-bracket"></i>
+                    <span>Cerrar Sesión</span>
+                </a>
+            </div>
         </div>
     </aside>
+
 
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
     
@@ -116,7 +167,7 @@ try {
         <section class="reportes-container">
             <article class="form-reporte">
                 <div class="card-heading" style="margin-bottom: 20px;">
-                    <h2><i class="fas fa-file-signature" style="color: var(--green); margin-right: 8px;"></i> Nuevo Reporte de Conducta</h2>
+                    <h2><i class="fas fa-file-signature" style="color: var(--green); margin-right: 8px;"></i> Nuevo Reporte</h2>
                 </div>
                 <form action="procesos/guardar_reporte.php" method="POST" id="formReporte">
                     <div class="form-group">
@@ -345,6 +396,32 @@ try {
             </div>
         </div>
     </main>
+    <!-- MODALES DE ÉXITO Y ERROR -->
+    <div class="alert-modal-overlay" id="modalExito" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px); z-index: 9999; justify-content: center; align-items: center;">
+        <div class="alert-modal-box" style="background: #252525; color: #f1f5f9; width: 90%; max-width: 480px; padding: 2.5rem; border-radius: 12px; border-top: 4px solid #10b981;">
+            <div class="alert-modal-title" style="display: flex; align-items: center; gap: 12px; margin-bottom: 1.2rem; font-size: 1.15rem; font-weight: 700;">
+                <i class="fas fa-check-circle" style="color: #10b981; font-size: 1.4rem;"></i>
+                <span style="color: #10b981;">¡ACCIÓN EXITOSA!</span>
+            </div>
+            <div class="alert-modal-text" id="exitoText" style="font-size: 0.95rem; line-height: 1.6; color: #cbd5e1; margin-bottom: 1.5rem;">Operación realizada correctamente.</div>
+            <div class="alert-modal-footer" style="display: flex; justify-content: flex-end; margin-top: 2rem;">
+                <button type="button" class="alert-modal-btn" onclick="document.getElementById('modalExito').style.display='none'" style="background: #cbd5e1; color: #0f172a; border: none; padding: 0.75rem 1.8rem; border-radius: 99px; font-weight: 600; cursor: pointer;">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="alert-modal-overlay" id="modalError" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px); z-index: 9999; justify-content: center; align-items: center;">
+        <div class="alert-modal-box" style="background: #252525; color: #f1f5f9; width: 90%; max-width: 480px; padding: 2.5rem; border-radius: 12px; border-top: 4px solid #ef4444;">
+            <div class="alert-modal-title" style="display: flex; align-items: center; gap: 12px; margin-bottom: 1.2rem; font-size: 1.15rem; font-weight: 700;">
+                <i class="fas fa-exclamation-triangle" style="color: #ef4444; font-size: 1.4rem;"></i>
+                <span style="color: #ef4444;">ERROR DE SISTEMA</span>
+            </div>
+            <div class="alert-modal-text" id="errorText" style="font-size: 0.95rem; line-height: 1.6; color: #cbd5e1; margin-bottom: 1.5rem;">No se pudo procesar la solicitud.</div>
+            <div class="alert-modal-footer" style="display: flex; justify-content: flex-end; margin-top: 2rem;">
+                <button type="button" class="alert-modal-btn" onclick="document.getElementById('modalError').style.display='none'" style="background: #cbd5e1; color: #0f172a; border: none; padding: 0.75rem 1.8rem; border-radius: 99px; font-weight: 600; cursor: pointer;">Aceptar</button>
+            </div>
+        </div>
+    </div>
 
     <script src="../Prefectura/procesos/dashboard_prefecturas.js"></script>
 

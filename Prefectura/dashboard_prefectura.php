@@ -11,24 +11,29 @@ date_default_timezone_set('America/Mexico_City');
 $fecha_actual = date('d/m/Y');
 
 try {
+    // 1. Contar total de alumnos
     $stmt_alumnos = $pdo->query("SELECT COUNT(*) FROM alumnos");
     $total_alumnos = $stmt_alumnos->fetchColumn();
 
+    // 2. Contar puntuales (y retardos justificados)
     $stmt_puntuales = $pdo->query("SELECT COUNT(*) FROM asistencias 
                                    WHERE DATE(fecha_hora_escaneo) = CURDATE() 
                                    AND estatus IN ('Puntual', 'Retardo Justificado')");
     $puntuales = $stmt_puntuales->fetchColumn();
 
+    // 3. Contar retardos
     $stmt_retardos = $pdo->query("SELECT COUNT(*) FROM asistencias 
                                   WHERE DATE(fecha_hora_escaneo) = CURDATE() 
                                   AND estatus = 'Retardo'");
     $retardos = $stmt_retardos->fetchColumn();
 
+    // 4. Calcular inasistencias
     $inasistencias = $total_alumnos - ($puntuales + $retardos);
     if ($inasistencias < 0) $inasistencias = 0;
 
+    // 5. Obtener últimos registros
     $stmt_ultimos = $pdo->query("
-        SELECT a.fecha_hora_escaneo, al.matricula, al.nombre, al.apellido_paterno, a.estatus 
+        SELECT a.fecha_hora_escaneo, a.fecha_hora_salida, al.matricula, al.nombre, al.apellido_paterno, a.estatus 
         FROM asistencias a
         INNER JOIN alumnos al ON a.id_alumno = al.id_alumno
         WHERE DATE(a.fecha_hora_escaneo) = CURDATE()
@@ -38,6 +43,7 @@ try {
     $ultimos_registros = $stmt_ultimos->fetchAll(PDO::FETCH_ASSOC);
 
 } catch (PDOException $e) {
+    // Si hay error en la BD, ponemos todo en cero para que no salgan errores en pantalla
     $total_alumnos = 0;
     $puntuales = 0;
     $retardos = 0;
@@ -66,44 +72,20 @@ $nombre_usuario = isset($_SESSION['nombre'])
     <link rel="stylesheet" href="../Prefectura/style_dashboard_prefectura.css">
 
     <style>
-        /* ESTILOS DEL NUEVO MODAL DE ALERTA */
         .alert-modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.75);
-            backdrop-filter: blur(4px);
-            z-index: 9999;
-            justify-content: center;
-            align-items: center;
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px); z-index: 9999;
+            justify-content: center; align-items: center;
         }
-        
         .alert-modal-box {
-            background: #252525;
-            color: #f1f5f9;
-            width: 90%;
-            max-width: 480px;
-            padding: 2.5rem;
-            border-radius: 12px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.8), 0 10px 10px -5px rgba(0, 0, 0, 0.5);
-            border-top: 4px solid #ef4444;
-            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            background: #252525; color: #f1f5f9; width: 90%; max-width: 480px; padding: 2.5rem;
+            border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.8), 0 10px 10px -5px rgba(0, 0, 0, 0.5);
+            border-top: 4px solid #ef4444; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
-
-        .alert-modal-title {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 1.2rem;
-            font-size: 1.15rem;
-            font-weight: 700;
-        }
-
+        .alert-modal-title { display: flex; align-items: center; gap: 12px; margin-bottom: 1.2rem; font-size: 1.15rem; font-weight: 700; }
         .alert-modal-title i { color: #ef4444; font-size: 1.4rem; }
         .alert-modal-text { font-size: 0.95rem; line-height: 1.6; color: #cbd5e1; margin-bottom: 1.5rem; }
         .alert-modal-date { font-weight: 700; color: #f87171; display: block; margin-top: 15px; font-size: 1rem; }
-        
         .alert-modal-footer { display: flex; justify-content: flex-end; margin-top: 2rem; }
         .alert-modal-btn {
             background: #cbd5e1; color: #0f172a; border: none; padding: 0.75rem 1.8rem;
@@ -111,15 +93,9 @@ $nombre_usuario = isset($_SESSION['nombre'])
         }
         .alert-modal-btn:hover { background: #f8fafc; transform: translateY(-1px); }
         .status-suspendido { background-color: #000000; color: #ffffff; }
-
-        @keyframes popIn {
-            0% { opacity: 0; transform: scale(0.95) translateY(10px); }
-            100% { opacity: 1; transform: scale(1) translateY(0); }
-        }
+        @keyframes popIn { 0% { opacity: 0; transform: scale(0.95) translateY(10px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
     </style>
-
 </head>
-
 <body>
 
     <aside class="sidebar" id="sidebar">
@@ -131,45 +107,25 @@ $nombre_usuario = isset($_SESSION['nombre'])
             <div class="brand">
                 <img src="../img/LogoCobaep.png" alt="Logo COBAEP" class="brand-logo">
                 <div class="brand-copy">
-                    <strong>SIGE<span>-Cobaep</span></strong>
-                    <small>Plantel 27</small>
+                    <strong>SIGE<span>-Cobaep</span></strong><small>Plantel 27</small>
                 </div>
             </div>
 
             <nav class="navigation" aria-label="Navegación principal">
                 <span class="nav-heading">Menú principal</span>
-                <a href="dashboard_prefectura.php" class="nav-item">
-                    <i class="fas fa-shield-halved"></i>
-                    <span>Control de Acceso</span>
-                </a>
-                <a href="historial_asistencias.php" class="nav-item">
-                    <i class="fas fa-history"></i>
-                    <span>Historial y Reportes</span>
-                </a>
-                <a href="creacion_reportes.php" class="nav-item">
-                    <i class="fa-solid fa-file-lines"></i>
-                    <span>Creacion de Reporte de Conducta</span>
-                </a>  
-                <a href="expediente_alumnos.php" class="nav-item">
-                    <i class="fas fa-folder-open"></i>
-                    <span>Expediente de Alumnos</span>
-                </a>
+                <a href="dashboard_prefectura.php" class="nav-item active"><i class="fas fa-shield-halved"></i><span>Control de Acceso</span></a>
+                <a href="monitoreo_grupos.php" class="nav-item"><i class="fas fa-users-viewfinder"></i><span>Monitoreo de Grupos</span></a>
+                <a href="historial_asistencias.php" class="nav-item"><i class="fas fa-history"></i><span>Historial de Asistencias</span></a>
+                <a href="creacion_reportes.php" class="nav-item"><i class="fa-solid fa-file-lines"></i><span>Creacion de Reporte de Conducta</span></a>  
+                <a href="expediente_alumnos.php" class="nav-item"><i class="fas fa-folder-open"></i><span>Expediente de Alumnos</span></a>
             </nav>
 
             <div class="sidebar-bottom">
                 <div class="institution">
-                    <div class="institution-icon">
-                        <i class="fas fa-building-columns"></i>
-                    </div>
-                    <div>
-                        <strong>COBAEP Plantel 27</strong>
-                        <span>Zaragoza, Puebla</span>
-                    </div>
+                    <div class="institution-icon"><i class="fas fa-building-columns"></i></div>
+                    <div><strong>COBAEP Plantel 27</strong><span>Zaragoza, Puebla</span></div>
                 </div>
-                <a href="../logout.php" class="logout">
-                    <i class="fas fa-arrow-right-from-bracket"></i>
-                    <span>Cerrar Sesión</span>
-                </a>
+                <a href="../logout.php" class="logout"><i class="fas fa-arrow-right-from-bracket"></i><span>Cerrar Sesión</span></a>
             </div>
         </div>
     </aside>
@@ -177,12 +133,9 @@ $nombre_usuario = isset($_SESSION['nombre'])
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <main class="main-content">
-
         <header class="topbar">
             <div class="topbar-left">
-                <button class="mobile-menu" id="mobileMenu" type="button" aria-label="Abrir menú">
-                    <i class="fas fa-bars"></i>
-                </button>
+                <button class="mobile-menu" id="mobileMenu" type="button" aria-label="Abrir menú"><i class="fas fa-bars"></i></button>
                 <div>
                     <span class="eyebrow">PREFECTURA · SIGE</span>
                     <h1>¡Bienvenido, <?php echo $nombre_usuario; ?>!</h1>
@@ -191,108 +144,57 @@ $nombre_usuario = isset($_SESSION['nombre'])
             </div>
 
             <div class="topbar-right">
-                <div class="date-pill">
-                    <i class="far fa-calendar"></i>
-                    <span id="fechaTexto"><?php echo date('d/m/Y H:i'); ?></span>
-                </div>
-
+                <div class="date-pill"><i class="far fa-calendar"></i><span id="fechaTexto"><?php echo date('d/m/Y H:i'); ?></span></div>
                 <div class="profile">
-                    <div class="profile-avatar">
-                        <i class="fas fa-user-shield"></i>
-                    </div>
-                    <div class="profile-info">
-                        <strong><?php echo $nombre_usuario; ?></strong>
-                        <span>Prefecto</span>
-                    </div>
+                    <div class="profile-avatar"><i class="fas fa-user-shield"></i></div>
+                    <div class="profile-info"><strong><?php echo $nombre_usuario; ?></strong><span>Prefecto</span></div>
                 </div>
             </div>
         </header>
 
         <section class="stats-grid" aria-label="Resumen">
             <article class="stat-card teachers">
-                <div class="stat-icon">
-                    <i class="fas fa-users"></i>
-                </div>
-                <div class="stat-content">
-                    <span>Total Alumnos</span>
-                    <strong><?php echo $total_alumnos; ?></strong>
-                    <small>Registrados en sistema</small>
-                </div>
+                <div class="stat-icon"><i class="fas fa-users"></i></div>
+                <div class="stat-content"><span>Total Alumnos</span><strong><?php echo $total_alumnos; ?></strong><small>Registrados en sistema</small></div>
             </article>
 
             <article class="stat-card students">
-                <div class="stat-icon">
-                    <i class="fas fa-check-circle"></i>
-                </div>
-                <div class="stat-content">
-                    <span>Puntuales</span>
-                    <strong><?php echo $puntuales; ?></strong>
-                    <small>Ingresos a tiempo</small>
-                </div>
+                <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                <div class="stat-content"><span>Puntuales</span><strong><?php echo $puntuales; ?></strong><small>Ingresos a tiempo</small></div>
             </article>
 
             <article class="stat-card attendance">
-                <div class="stat-icon">
-                    <i class="fas fa-clock"></i>
-                </div>
-                <div class="stat-content">
-                    <span>Retardos</span>
-                    <strong><?php echo $retardos; ?></strong>
-                    <small>Ingresos con demora</small>
-                </div>
+                <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                <div class="stat-content"><span>Retardos</span><strong><?php echo $retardos; ?></strong><small>Ingresos con demora</small></div>
             </article>
 
             <article class="stat-card absent">
-                <div class="stat-icon">
-                    <i class="fas fa-user-xmark"></i>
-                </div>
-                <div class="stat-content">
-                    <span>Pendientes / Faltas</span>
-                    <strong><?php echo $inasistencias; ?></strong>
-                    <small>Aún no ingresan</small>
-                </div>
+                <div class="stat-icon"><i class="fas fa-user-xmark"></i></div>
+                <div class="stat-content"><span>Pendientes / Faltas</span><strong><?php echo $inasistencias; ?></strong><small>Aún no ingresan</small></div>
             </article>
         </section>
 
         <section class="section">
             <div class="section-heading">
-                <div>
-                    <span class="section-kicker">HERRAMIENTAS</span>
-                    <h2>Acciones de registro</h2>
-                </div>
+                <div><span class="section-kicker">HERRAMIENTAS</span><h2>Acciones de registro</h2></div>
             </div>
 
             <div class="action-grid">
                 <a href="escaner_qr.php" class="action-card scanner-btn">
-                    <div class="action-icon green">
-                        <i class="fas fa-qrcode"></i>
-                    </div>
-                    <div class="action-text">
-                        <h3>Escáner QR</h3>
-                        <p>Captura credenciales rápidamente.</p>
-                    </div>
+                    <div class="action-icon green"><i class="fas fa-qrcode"></i></div>
+                    <div class="action-text"><h3>Escáner QR</h3><p>Captura credenciales rápidamente.</p></div>
                     <i class="fas fa-arrow-right action-arrow"></i>
                 </a>
                 
                 <a href="#" class="action-card suspension-btn" onclick="document.getElementById('modalSuspension').style.display='flex'">
-                    <div class="action-icon red">
-                        <i class="fas fa-calendar-times"></i>
-                    </div>
-                    <div class="action-text">
-                        <h3>Suspender Faltas</h3>
-                        <p>Configura días sin clases.</p>
-                    </div>
+                    <div class="action-icon red"><i class="fas fa-calendar-times"></i></div>
+                    <div class="action-text"><h3>Suspender Faltas</h3><p>Configura días sin clases.</p></div>
                     <i class="fas fa-arrow-right action-arrow"></i>
                 </a>
 
                 <a href="#" class="action-card manual-btn" onclick="abrirModal()">
-                    <div class="action-icon orange">
-                        <i class="fas fa-keyboard"></i>
-                    </div>
-                    <div class="action-text">
-                        <h3>Registro Manual</h3>
-                        <p>Ingreso en casos excepcionales.</p>
-                    </div>
+                    <div class="action-icon orange"><i class="fas fa-keyboard"></i></div>
+                    <div class="action-text"><h3>Registro Manual</h3><p>Ingreso en casos excepcionales.</p></div>
                     <i class="fas fa-arrow-right action-arrow"></i>
                 </a>
             </div>
@@ -301,20 +203,16 @@ $nombre_usuario = isset($_SESSION['nombre'])
         <section class="dashboard-bottom" style="grid-template-columns: 1fr;">
             <article class="overview-card" style="padding: 0; overflow: hidden;">
                 <div class="card-heading" style="padding: 24px 24px 0;">
-                    <div>
-                        <span class="section-kicker">MONITOREO</span>
-                        <h2>Últimos Ingresos Detectados</h2>
-                    </div>
-                    <button class="btn btn-cancel" onclick="location.reload();" style="padding: 0.5rem 1rem; font-size: 0.75rem;">
-                        <i class="fas fa-sync-alt"></i> Actualizar
-                    </button>
+                    <div><span class="section-kicker">MONITOREO</span><h2>Últimos Ingresos Detectados</h2></div>
+                    <button class="btn btn-cancel" onclick="location.reload();" style="padding: 0.5rem 1rem; font-size: 0.75rem;"><i class="fas fa-sync-alt"></i> Actualizar</button>
                 </div>
 
                 <div class="table-responsive" style="margin-bottom: 0;">
                     <table>
                         <thead>
                             <tr>
-                                <th>Hora</th>
+                                <th>Entrada</th>
+                                <th>Salida</th>
                                 <th>Matrícula</th>
                                 <th>Nombre del Alumno</th>
                                 <th>Estado</th>
@@ -322,11 +220,7 @@ $nombre_usuario = isset($_SESSION['nombre'])
                         </thead>
                         <tbody>
                             <?php if (empty($ultimos_registros)): ?>
-                                <tr>
-                                    <td colspan="4" style="text-align: center; color: var(--muted); padding: 3rem;">
-                                        Aún no hay registros de asistencia para el día de hoy.
-                                    </td>
-                                </tr>
+                                <tr><td colspan="5" style="text-align: center; color: var(--muted); padding: 3rem;">Aún no hay registros de asistencia para el día de hoy.</td></tr>
                             <?php else: ?>
                                 <?php foreach ($ultimos_registros as $registro): 
                                     $hora_formateada = date('h:i A', strtotime($registro['fecha_hora_escaneo']));
@@ -337,32 +231,39 @@ $nombre_usuario = isset($_SESSION['nombre'])
                                     $texto_estatus = !empty($registro['estatus']) ? $registro['estatus'] : 'Falta';
 
                                     if ($estatus_min === 'retardo') {
-                                   $clase_badge = 'status-retardo';
-                                } elseif ($estatus_min === 'falta' || empty($estatus_min)) {
-                                   $clase_badge = 'status-falta';
-                                   $clase_fila = 'fila-falta';
-                                   $texto_estatus = 'Falta';
-                                } elseif ($estatus_min === 'suspendido') {
-                                   $clase_badge = 'status-suspendido'; 
-                                   $texto_estatus = 'Suspendido'; 
-                                } elseif ($estatus_min === 'retardo justificado') {
-                                   $clase_badge = 'status-puntual'; 
-                                   $texto_estatus = 'Puntual (Justificado)'; 
-                                } elseif ($estatus_min === 'falta justificada') {
-                                   $clase_badge = 'status-justificada';
-                                }
+                                       $clase_badge = 'status-retardo';
+                                    } elseif ($estatus_min === 'falta' || empty($estatus_min)) {
+                                       $clase_badge = 'status-falta';
+                                       $clase_fila = 'fila-falta';
+                                       $texto_estatus = 'Falta';
+                                    } elseif ($estatus_min === 'suspendido') {
+                                       $clase_badge = 'status-suspendido'; 
+                                       $texto_estatus = 'Suspendido'; 
+                                    } elseif ($estatus_min === 'retardo justificado') {
+                                       $clase_badge = 'status-puntual'; 
+                                       $texto_estatus = 'Puntual (Justificado)'; 
+                                    } elseif ($estatus_min === 'falta justificada') {
+                                       $clase_badge = 'status-justificada';
+                                    }
     
                                     $nombre_completo = htmlspecialchars($registro['apellido_paterno'] . ', ' . $registro['nombre']);
                                 ?>
                                 <tr class="<?php echo $clase_fila; ?>">
                                     <td><strong><?php echo $hora_formateada; ?></strong></td>
+                                    
+                                    <td>
+                                        <?php 
+                                        if (!empty($registro['fecha_hora_salida'])) {
+                                            echo '<strong>' . date('h:i A', strtotime($registro['fecha_hora_salida'])) . '</strong>';
+                                        } else {
+                                            echo '<span style="color: var(--muted);">-</span>';
+                                        }
+                                        ?>
+                                    </td>
+                                    
                                     <td><?php echo htmlspecialchars($registro['matricula']); ?></td>
                                     <td><?php echo $nombre_completo; ?></td>
-                                    <td>
-                                        <span class="status-badge-table <?php echo $clase_badge; ?>">
-                                            <?php echo htmlspecialchars($texto_estatus); ?>
-                                        </span>
-                                    </td>
+                                    <td><span class="status-badge-table <?php echo $clase_badge; ?>"><?php echo htmlspecialchars($texto_estatus); ?></span></td>
                                 </tr>
                                 <?php endforeach; ?>
                             <?php endif; ?>
@@ -373,11 +274,8 @@ $nombre_usuario = isset($_SESSION['nombre'])
         </section>
 
         <footer class="footer" style="margin-top: 2rem;">
-            <span>© 2026 COBAEP Plantel 27</span>
-            <span>·</span>
-            <span>SIGE · Sistema de Información y Gestión Educativa</span>
+            <span>© 2026 COBAEP Plantel 27</span><span>·</span><span>SIGE · Sistema de Información y Gestión Educativa</span>
         </footer>
-
     </main>
 
     <!-- MODAL DE SUSPENSIÓN DE CLASES -->
@@ -385,7 +283,6 @@ $nombre_usuario = isset($_SESSION['nombre'])
         <div class="modal">
             <h3><i class="fas fa-calendar-times" style="color: #ef4444;"></i> Programar Suspensión</h3>
             <p>El sistema no pondrá faltas automáticas durante el rango de fechas que elijas. Al terminar, se reactivará solo.</p>
-            
             <form action="procesos/registrar_suspension.php" method="POST">
                 <div class="form-group">
                     <label>Motivo de la suspensión</label>
@@ -397,14 +294,8 @@ $nombre_usuario = isset($_SESSION['nombre'])
                     </select>
                 </div>
                 <div class="form-group" style="display: flex; gap: 10px;">
-                    <div style="flex: 1;">
-                        <label>Fecha de Inicio</label>
-                        <input type="date" name="fecha_inicio" class="form-control" required>
-                    </div>
-                    <div style="flex: 1;">
-                        <label>Fecha de Fin</label>
-                        <input type="date" name="fecha_fin" class="form-control" required>
-                    </div>
+                    <div style="flex: 1;"><label>Fecha de Inicio</label><input type="date" name="fecha_inicio" class="form-control" required></div>
+                    <div style="flex: 1;"><label>Fecha de Fin</label><input type="date" name="fecha_fin" class="form-control" required></div>
                 </div>  
                 <div class="modal-actions">
                     <button type="button" class="btn btn-cancel" onclick="document.getElementById('modalSuspension').style.display='none'">Cancelar</button>
@@ -419,13 +310,11 @@ $nombre_usuario = isset($_SESSION['nombre'])
         <div class="modal">
             <h3>Registro Manual</h3>
             <p>Utiliza esta función únicamente en casos excepcionales (credencial dañada o sistema caído).</p>
-            
             <form action="procesos/registro_manual.php" method="POST">
                 <div class="form-group">
                     <label for="matricula_manual"><i class="fas fa-id-card"></i> Número de Matrícula</label>
                     <input type="text" id="matricula_manual" name="matricula" class="form-control" placeholder="Ej. 22014567" required>
                 </div>
-                
                 <div class="form-group">
                     <label for="estado_asistencia"><i class="fas fa-check-circle"></i> Estado a registrar</label>
                     <select id="estado_asistencia" name="estado" class="form-control" required>
@@ -433,7 +322,6 @@ $nombre_usuario = isset($_SESSION['nombre'])
                       <option value="retardo">Retardo</option>
                     </select>
                 </div>
-
                 <div class="form-group">
                     <label for="tipo_movimiento"><i class="fas fa-exchange-alt"></i> Acción</label>
                     <select id="tipo_movimiento" name="tipo_movimiento" class="form-control" required>
@@ -441,7 +329,6 @@ $nombre_usuario = isset($_SESSION['nombre'])
                         <option value="salida">Registrar Salida</option>
                     </select>
                 </div>
-
                 <div class="modal-actions">
                     <button type="button" class="btn btn-cancel" onclick="cerrarModal()">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Guardar Registro</button>
@@ -450,42 +337,44 @@ $nombre_usuario = isset($_SESSION['nombre'])
         </div>
     </div>
 
-    <!-- NUEVO: MODAL DE ALERTA DE SUSPENSIÓN -->
+    <!-- MODAL DE ALERTA DE SUSPENSIÓN -->
     <div class="alert-modal-overlay" id="alertModal">
         <div class="alert-modal-box">
+            <div class="alert-modal-title"><i class="fas fa-minus-circle"></i><span>ACCESO DENEGADO</span></div>
+            <div class="alert-modal-text">El alumno se encuentra SUSPENDIDO y no puede registrar asistencia en el plantel.<span class="alert-modal-date" id="alertReturnDate"></span></div>
+            <div class="alert-modal-footer"><button type="button" class="alert-modal-btn" onclick="document.getElementById('alertModal').style.display='none'">Aceptar</button></div>
+        </div>
+    </div>
+
+    <!-- MODAL DE ÉXITO -->
+    <div class="alert-modal-overlay" id="modalExito">
+        <div class="alert-modal-box" style="border-top: 4px solid #10b981;">
             <div class="alert-modal-title">
-                <i class="fas fa-minus-circle"></i>
-                <span>ACCESO DENEGADO</span>
+                <i class="fas fa-check-circle" style="color: #10b981;"></i>
+                <span style="color: #10b981;">¡REGISTRO EXITOSO!</span>
             </div>
-            <div class="alert-modal-text">
-                El alumno se encuentra SUSPENDIDO y no puede registrar asistencia en el plantel.
-                <span class="alert-modal-date" id="alertReturnDate"></span>
-            </div>
+            <div class="alert-modal-text" id="exitoText">La asistencia se ha guardado correctamente en el sistema.</div>
             <div class="alert-modal-footer">
-                <button type="button" class="alert-modal-btn" onclick="document.getElementById('alertModal').style.display='none'">Aceptar</button>
+                <button type="button" class="alert-modal-btn" onclick="document.getElementById('modalExito').style.display='none'">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE ERROR -->
+    <div class="alert-modal-overlay" id="modalError">
+        <div class="alert-modal-box" style="border-top: 4px solid #ef4444;">
+            <div class="alert-modal-title">
+                <i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i>
+                <span style="color: #ef4444;">ERROR EN EL REGISTRO</span>
+            </div>
+            <div class="alert-modal-text" id="errorText">No se pudo registrar la asistencia. Verifica la matrícula e intenta nuevamente.</div>
+            <div class="alert-modal-footer">
+                <button type="button" class="alert-modal-btn" onclick="document.getElementById('modalError').style.display='none'">Aceptar</button>
             </div>
         </div>
     </div>
 
     <script src="../Prefectura/procesos/dashboard_prefecturas.js"></script>
 
-    <!-- NUEVO: LÓGICA PARA DISPARAR LA ALERTA PERSONALIZADA -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const msg = urlParams.get('msg');
-            const retorno = urlParams.get('retorno');
-
-            if (msg === 'alumno_suspendido') {
-                document.getElementById('alertReturnDate').innerText = 'Podrá reingresar el: ' + retorno;
-                document.getElementById('alertModal').style.display = 'flex';
-                window.history.replaceState(null, null, window.location.pathname);
-            } else if (msg === 'alumno_baja') {
-                document.getElementById('alertReturnDate').innerText = 'El alumno fue dado de baja definitivamente.';
-                document.getElementById('alertModal').style.display = 'flex';
-                window.history.replaceState(null, null, window.location.pathname);
-            }
-        });
-    </script>
 </body>
 </html>

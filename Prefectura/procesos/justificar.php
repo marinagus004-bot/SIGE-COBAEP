@@ -8,34 +8,59 @@ if (!isset($_SESSION['id_usuario']) || $_SESSION['rol'] !== 'prefectos') {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $id_asistencia = $_POST['id_asistencia'] ?? null;
+    $id_asistencia = filter_input(INPUT_POST, 'id_asistencia', FILTER_VALIDATE_INT);
+    $motivo = trim($_POST['motivo'] ?? '');
+    $detalles = trim($_POST['detalles'] ?? '');
 
-    if ($id_asistencia) {
-        // Obtenemos el estado actual
-        $stmt = $pdo->prepare("SELECT estatus FROM ASISTENCIAS WHERE id_asistencia = ?");
+    // Validar que manden el ID y hayan seleccionado una opción del Select
+    if (!$id_asistencia || empty($motivo)) {
+        header("Location: ../historial_asistencias.php?error=id_invalido");
+        exit();
+    }
+
+    // Unir la opción del select con el texto extra (si escribieron algo)
+    $motivo_final = $motivo;
+    if (!empty($detalles)) {
+        $motivo_final .= " - " . $detalles;
+    }
+
+    try {
+        $stmt = $pdo->prepare("SELECT estatus FROM asistencias WHERE id_asistencia = ?");
         $stmt->execute([$id_asistencia]);
         $asistencia = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($asistencia) {
             $nuevo_estatus = '';
+            $estatus_actual = strtolower($asistencia['estatus']);
             
-            // Evaluamos para cambiar el estado correctamente
-            if ($asistencia['estatus'] === 'Falta') {
+            if ($estatus_actual === 'falta' || empty($estatus_actual)) {
                 $nuevo_estatus = 'Falta Justificada';
-            } elseif ($asistencia['estatus'] === 'Retardo') {
+            } elseif ($estatus_actual === 'retardo') {
                 $nuevo_estatus = 'Retardo Justificado';
             }
 
-            // Actualizamos solo si era Falta o Retardo
             if ($nuevo_estatus !== '') {
-                $update = $pdo->prepare("UPDATE ASISTENCIAS SET estatus = ? WHERE id_asistencia = ?");
-                $update->execute([$nuevo_estatus, $id_asistencia]);
+                // AQUÍ SE ACTUALIZA EL ESTATUS Y SE INSERTA EL MOTIVO EN LA NUEVA COLUMNA
+                $update = $pdo->prepare("UPDATE asistencias SET estatus = ?, motivo_justificacion = ? WHERE id_asistencia = ?");
+                $update->execute([$nuevo_estatus, $motivo_final, $id_asistencia]);
+                
+                header("Location: ../historial_asistencias.php?msg=exito_justificante");
+                exit();
+            } else {
+                header("Location: ../historial_asistencias.php?error=no_aplica");
+                exit();
             }
+        } else {
+            header("Location: ../historial_asistencias.php?error=registro_no_encontrado");
+            exit();
         }
+    } catch (PDOException $e) {
+        error_log("Error al justificar asistencia: " . $e->getMessage());
+        header("Location: ../historial_asistencias.php?error=error_bd");
+        exit();
     }
 }
 
-// Regresamos al historial
 header("Location: ../historial_asistencias.php");
 exit();
 ?>

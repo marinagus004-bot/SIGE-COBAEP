@@ -16,12 +16,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id_prefecto = $_SESSION['id_usuario'];
 
     if (empty($matricula)) {
-        header("Location: ../dashboard_prefectura.php?msg=campos_vacios");
+        header("Location: ../dashboard_prefectura.php?msg=error_manual&detalle=" . urlencode("El campo de matrícula no puede estar vacío."));
         exit();
     }
 
     try {
-        $stmt = $pdo->prepare("SELECT id_alumno, estado_disciplinario, fecha_fin_suspension FROM alumnos WHERE matricula = ?");
+        $stmt = $pdo->prepare("SELECT id_alumno, estado_disciplinario, fecha_fin_suspension FROM alumnos WHERE matricula = ? AND estatus = 'Alta'");
         $stmt->execute([$matricula]);
         $alumno = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -48,40 +48,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             // ==========================================
 
-            if ($tipo_movimiento === 'salida') {
-                $stmtCheck = $pdo->prepare("
-                    SELECT id_asistencia FROM asistencias 
-                    WHERE id_alumno = ? AND DATE(fecha_hora_escaneo) = CURDATE() 
-                    ORDER BY id_asistencia DESC LIMIT 1
-                ");
-                $stmtCheck->execute([$alumno['id_alumno']]);
-                $registro_hoy = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+            // VALIDACIÓN: Buscar si el alumno ya tiene un registro HOY
+            $stmtCheck = $pdo->prepare("
+                SELECT id_asistencia, fecha_hora_salida 
+                FROM asistencias 
+                WHERE id_alumno = ? AND DATE(fecha_hora_escaneo) = CURDATE() 
+                ORDER BY id_asistencia DESC LIMIT 1
+            ");
+            $stmtCheck->execute([$alumno['id_alumno']]);
+            $registro_hoy = $stmtCheck->fetch(PDO::FETCH_ASSOC);
 
+            if ($tipo_movimiento === 'entrada') {
+                // Si el alumno ya ingresó hoy, mostrar aviso de que ya está dentro
                 if ($registro_hoy) {
+                    header("Location: ../dashboard_prefectura.php?msg=error_manual&detalle=" . urlencode("El alumno ya registró su entrada y se encuentra dentro de la institución."));
+                    exit();
+                } else {
+                    $estatus_db = 'Puntual'; 
+                    if ($estado_post === 'retardo') $estatus_db = 'Retardo';
+                    elseif ($estado_post === 'inasistencia') $estatus_db = 'Falta'; 
+
+                    $stmtInsert = $pdo->prepare("INSERT INTO asistencias (id_alumno, fecha_hora_escaneo, tipo_registro, estatus, id_prefecto) VALUES (?, NOW(), 'Entrada', ?, ?)");
+                    $stmtInsert->execute([$alumno['id_alumno'], $estatus_db, $id_prefecto]);
+
+                    header("Location: ../dashboard_prefectura.php?msg=exito_entrada");
+                    exit();
+                }
+            } elseif ($tipo_movimiento === 'salida') {
+                if (!$registro_hoy) {
+                    // ERROR: NO HAY ENTRADA PREVIA HOY
+                    header("Location: ../dashboard_prefectura.php?msg=error_manual&detalle=" . urlencode("No se puede registrar salida. El alumno no tiene una entrada previa el día de hoy."));
+                    exit();
+                } elseif ($registro_hoy['fecha_hora_salida'] !== null) {
+                    // ERROR: LA SALIDA YA SE REGISTRÓ ANTERIORMENTE
+                    header("Location: ../dashboard_prefectura.php?msg=error_manual&detalle=" . urlencode("El alumno ya registró su salida previamente y ya se retiró."));
+                    exit();
+                } else {
+                    // ÉXITO AL REGISTRAR SALIDA
                     $stmtUpdate = $pdo->prepare("UPDATE asistencias SET fecha_hora_salida = NOW() WHERE id_asistencia = ?");
                     $stmtUpdate->execute([$registro_hoy['id_asistencia']]);
-                    header("Location: ../dashboard_prefectura.php?msg=salida_registrada");
-                } else {
-                    header("Location: ../dashboard_prefectura.php?msg=sin_entrada_previa");
+                    
+                    header("Location: ../dashboard_prefectura.php?msg=exito_salida");
+                    exit();
                 }
-                exit();
-            } else {
-                $estatus_db = 'Puntual'; 
-                if ($estado_post === 'retardo') $estatus_db = 'Retardo';
-                elseif ($estado_post === 'inasistencia') $estatus_db = 'Falta'; 
-
-                $stmtInsert = $pdo->prepare("INSERT INTO asistencias (id_alumno, fecha_hora_escaneo, tipo_registro, estatus, id_prefecto) VALUES (?, NOW(), 'Entrada', ?, ?)");
-                $stmtInsert->execute([$alumno['id_alumno'], $estatus_db, $id_prefecto]);
-
-                header("Location: ../dashboard_prefectura.php?msg=registro_exitoso");
-                exit();
             }
         } else {
-            header("Location: ../dashboard_prefectura.php?msg=matricula_no_encontrada");
+            header("Location: ../dashboard_prefectura.php?msg=error_manual&detalle=" . urlencode("La matrícula ingresada no existe en el sistema."));
             exit();
         }
     } catch (PDOException $e) {
-        die("Error de BD: " . $e->getMessage());
+        header("Location: ../dashboard_prefectura.php?msg=error_manual&detalle=" . urlencode("Ocurrió un error en la base de datos al intentar guardar."));
+        exit();
     }
 }
 ?>
