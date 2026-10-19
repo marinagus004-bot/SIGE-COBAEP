@@ -407,3 +407,261 @@ body.sidebar-collapsed .collapse-toggle i { transform: rotate(180deg); }
     .quick-actions-grid { grid-template-columns: repeat(2, 1fr); }
     .cred-body { flex-direction: column; text-align: center; }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* =========================================================
+   ESTILOS ESPECÍFICOS DEL DASHBOARD DEL ESTUDIANTE
+   ========================================================= */
+   
+        /* ==============================================================
+           CORE LAYOUT & DESKTOP
+        ============================================================== */
+        :root {
+            --sidebar-width: 260px;
+            --sidebar-collapsed-width: 80px;
+            --bg-main: #f8fafc;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            margin: 0; padding: 0;
+            overflow-x: hidden;
+            box-sizing: border-box;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            width: calc(100% - var(--sidebar-width));
+            padding: 1.5rem 2rem;
+            min-height: 100vh;
+            transition: margin-left 0.3s ease, width 0.3s ease;
+        }
+
+        body.sidebar-collapsed .main-content {
+            margin-left: var(--sidebar-collapsed-width);
+            width: calc(100% - var(--sidebar-collapsed-width));
+        }
+
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        /* ==============================================================
+           TOPBAR DESKTOP & DROPDOWN DE PERFIL
+        ============================================================== */
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.2rem;
+        }
+        
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .topbar-left h1 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 0 0 0.1rem 0;
+            letter-spacing: -0.5px;
+        }
+        
+        .topbar-left p { margin: 0; color: #64748b; font-size: 0.85rem; }
+
+        .topbar-right { display: flex; align-items: center; gap: 10px; }
+
+        .date-pill {
+            background: white; padding: 0.5rem 1rem;
+            border-radius: 99px; font-size: 0.8rem; font-weight: 600;
+            color: #475569; border: 1px solid #e2e8f0;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .date-pill i { color: #059669; }
+
+        /* Contenedor relativo para el dropdown */
+        .profile-container {
+            position: relative;
+        }
+
+        .profile-pill {
+            background: white; padding: 0.3rem 0.8rem 0.3rem 0.3rem;
+            border-radius: 99px; display: flex; align-items: center; gap: 10px;
+            border: 1px solid #e2e8f0; cursor: pointer; transition: background 0.2s;
+        }
+        .profile-pill:hover { background: #f8fafc; }
+        .profile-pill .avatar {
+            width: 34px; height: 34px; background: #063f2b; color: white;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 0.85rem;
+        }
+        .profile-info strong { display: block; font-size: 0.85rem; color: #0f172a; }
+        .profile-info span { display: block; font-size: 0.7rem; color: #64748b; }
+        
+        /* Menú Desplegable (Dropdown) */
+        .profile-dropdown {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            width: 220px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 100;
+        }
+        
+        .profile-dropdown.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .profile-dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: #475569;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .profile-dropdown-item i { width: 16px; text-align: center; font-size: 1rem; }
+        
+        .profile-dropdown-item:first-child { border-radius: 12px 12px 0 0; }
+        .profile-dropdown-item:last-child { border-radius: 0 0 12px 12px; border-top: 1px solid #f1f5f9; color: #ef4444; }
+        
+        .profile-dropdown-item:hover { background: #f8fafc; color: #0f172a; padding-left: 20px; }
+        .profile-dropdown-item:last-child:hover { background: #fef2f2; color: #dc2626; padding-left: 20px; }
+
+        /* Botón hamburguesa oculto en PC */
+        .mobile-menu {
+            display: none;
+            background: none; border: none; padding: 0;
+            font-size: 1.6rem; color: #0f172a; cursor: pointer;
+        }
+
+        /* ==============================================================
+           TARJETAS
+        ============================================================== */
+        .info-banner {
+            background: #ecfdf5; border: 1px solid #a7f3d0;
+            color: #065f46; padding: 0.75rem 1.25rem; border-radius: 10px;
+            display: flex; align-items: center; gap: 10px; font-weight: 500; font-size: 0.85rem;
+        }
+
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat-card, .avisos-card, .clases-card, .progreso-card {
+            background: white; border-radius: 12px; border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02); padding: 1.2rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .stat-card:hover, .avisos-card:hover, .clases-card:hover, .progreso-card:hover {
+            transform: translateY(-2px); box-shadow: 0 8px 12px -3px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-card-inner { display:flex; gap: 12px; align-items:center; }
+        .stat-icon { width:42px; height:42px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.2rem; }
+        .stat-text .label { font-size:0.7rem; color:#64748b; font-weight:700; text-transform:uppercase; }
+        .stat-text .value { font-size:1.5rem; font-weight:800; color:#0f172a; line-height:1; margin:3px 0; }
+        .stat-text .sub { font-size:0.7rem; color:#94a3b8; }
+
+        .bottom-split {
+            display: grid; grid-template-columns: 2fr 1fr; gap: 1rem;
+        }
+
+        .circular-chart {
+    display: flex; 
+    justify-content: center; 
+    align-items: center;
+    width: 110px; 
+    height: 110px; 
+    border-radius: 50%;
+    /* Aquí llamamos a la variable --puntos. El 0% es un valor por defecto por si falla */
+    background: conic-gradient(#10b981 var(--puntos, 0%), #f1f5f9 0);
+    margin: 0.5rem auto;
+}
+
+.inner-circle {
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+    align-items: center;
+    width: 90px; 
+    height: 90px; 
+    background: white; 
+    border-radius: 50%;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.04);
+}
+        /* ==============================================================
+           RESPONSIVE MOBILE
+        ============================================================== */
+        @media (max-width: 1024px) { 
+            .bottom-split { grid-template-columns: 1fr; } 
+        }
+
+        @media (max-width: 768px) {
+            .main-content { margin-left: 0 !important; width: 100% !important; padding: 1.2rem; }
+            
+            .topbar { flex-direction: column; align-items: stretch; gap: 1rem; }
+            .topbar-left { align-items: flex-start; }
+            .topbar-left h1 { font-size: 1.35rem; }
+            .mobile-menu { display: block; margin-top: 3px; }
+
+            .topbar-right {
+                display: grid; 
+                grid-template-columns: 1fr 1fr;
+                gap: 10px; 
+                width: 100%;
+            }
+            .date-pill { 
+                width: 100%; justify-content: center; padding: 0.5rem; 
+            }
+            .profile-pill { 
+                width: 100%; justify-content: center; padding: 0.5rem; 
+            }
+            .profile-pill .profile-info { 
+                overflow: hidden; text-overflow: ellipsis; white-space: nowrap; 
+            }
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 400px) {
+            .topbar-right { grid-template-columns: 1fr; }
+        }
+    

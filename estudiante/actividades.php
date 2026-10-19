@@ -42,33 +42,33 @@ try {
 </head>
 <body>
 
-    <!-- ================= BARRA LATERAL (Basada en tu captura) ================= -->
-    <aside class="sidebar">
+     <!-- ================= BARRA LATERAL ================= -->
+    <aside class="sidebar" id="sidebar">
+        <button id="collapseToggle" class="collapse-toggle" aria-label="Colapsar menú"><i class="fas fa-chevron-left"></i></button>
         <div class="sidebar-inner">
             <div class="brand">
-                <img src="../img/LogoCobaep.png" alt="Logo" class="brand-logo">
-                <div class="brand-copy">
-                    <strong>SIGE<span>-Cobaep</span></strong>
-                    <small>Plantel 27</small>
-                </div>
+                <img src="../img/LogoCobaep.png" alt="Logo COBAEP" class="brand-logo">
+                <div class="brand-copy"><strong>SIGE<span>-Cobaep</span></strong><small>Plantel 27</small></div>
             </div>
 
             <nav class="navigation">
-                <span class="nav-heading">MENÚ PRINCIPAL</span>
-                <a href="dashboard_estud.php" class="nav-item"><i class="fas fa-house"></i><span>Inicio</span></a>
-                <a href="perfil.php" class="nav-item"><i class="fas fa-user"></i><span>Mi Perfil</span></a>
-                <a href="asistencias.php" class="nav-item"><i class="far fa-calendar-check"></i><span>Mis Asistencias</span></a>
-                <a href="horario_clases.php" class="nav-item"><i class="far fa-calendar-alt"></i><span>Horario de Clases</span></a>
-                
-                <!-- MARCADO COMO ACTIVO -->
-                <a href="actividades.php" class="nav-item active"><i class="fas fa-book-open-reader"></i><span>Actividades Escolares</span></a>
-                
-                <span class="nav-heading">INFORMACIÓN</span>
-                <a href="avisos.php" class="nav-item"><i class="far fa-bell"></i><span>Avisos</span></a>
-                <a href="documentos.php" class="nav-item"><i class="far fa-file-alt"></i><span>Documentos</span></a>
+                <span class="nav-heading">Menú principal</span>
+                <a href="dashboard_estud.php" class="nav-item"><i class="fas fa-home"></i> <span>Inicio</span></a>
+                <a href="mis_asistencias.php" class="nav-item"><i class="far fa-calendar-check"></i> <span>Mis Asistencias</span></a>
+                <a href="horario_clases.php" class="nav-item"><i class="far fa-calendar-alt"></i> <span>Horario de Clases</span></a>
+                <a href="actividades.php" class="nav-item active"><i class="fas fa-star"></i> <span>Actividades Escolares</span></a>
+
+                <span class="nav-heading">Información</span>
+                <a href="avisos.php" class="nav-item"><i class="far fa-bell"></i> <span>Avisos</span></a>
+                <a href="documentos.php" class="nav-item"><i class="far fa-file-alt"></i> <span>Documentos</span></a>
+                <a href="reglamentos.php" class="nav-item"><i class="far fa-clipboard"></i> <span>Reglamentos</span></a>
             </nav>
 
             <div class="sidebar-bottom">
+                <div class="institution">
+                    <div class="institution-icon"><i class="fas fa-building-columns"></i></div>
+                    <div><strong>COBAEP Plantel 27</strong><span>Zaragoza, Puebla</span></div>
+                </div>
                 <a href="../logout.php" class="logout"><i class="fas fa-arrow-right-from-bracket"></i><span>Cerrar Sesión</span></a>
             </div>
         </div>
