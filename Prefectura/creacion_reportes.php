@@ -105,7 +105,6 @@ try {
             <div class="brand"><img src="../img/LogoCobaep.png" alt="Logo COBAEP" class="brand-logo"><div class="brand-copy"><strong>SIGE<span>-Cobaep</span></strong><small>Plantel 27</small></div></div>
              <nav class="navigation" aria-label="Navegación principal">
                 <span class="nav-heading">Menú principal</span>
-<<<<<<< HEAD
                 <a href="dashboard_prefectura.php" class="nav-item">
                     <i class="fas fa-shield-halved"></i>
                     <span>Control de Acceso</span>
@@ -123,13 +122,6 @@ try {
                     <i class="fas fa-folder-open"></i>
                     <span>Expediente de Alumnos</span>
                 </a>
-=======
-                <a href="dashboard_prefectura.php" class="nav-item"><i class="fas fa-shield-halved"></i><span>Control de Acceso</span></a>
-                <a href="monitoreo_grupos.php" class="nav-item"><i class="fas fa-users-viewfinder"></i><span>Monitoreo de Grupos</span></a>
-                <a href="historial_asistencias.php" class="nav-item"><i class="fas fa-history"></i><span>Historial de Asistencias</span></a>
-                <a href="creacion_reportes.php" class="nav-item active"><i class="fa-solid fa-file-lines"></i><span>Creacion de Reporte de Conducta</span></a>  
-                <a href="expediente_alumnos.php" class="nav-item"><i class="fas fa-folder-open"></i><span>Expediente de Alumnos</span></a>
->>>>>>> 5ce40042e72aa801237a29560c47c1de9d41c116
             </nav>
             <div class="sidebar-bottom">
                 <div class="institution">
