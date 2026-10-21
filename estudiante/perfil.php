@@ -119,7 +119,7 @@ try {
             padding: 1.2rem 2rem; height: 100vh; overflow-y: auto; transition: margin-left 0.3s ease, width 0.3s ease;
         }
         body.sidebar-collapsed .main-content { margin-left: var(--sidebar-collapsed-width); width: calc(100% - var(--sidebar-collapsed-width)); }
-        .dashboard-container { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 1rem; }
+        .dashboard-container { max-width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 1rem; }
 
         /* HEADER Y PERFIL */
         .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }

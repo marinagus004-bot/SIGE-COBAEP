@@ -460,7 +460,7 @@ body.sidebar-collapsed .collapse-toggle i { transform: rotate(180deg); }
         }
 
         .dashboard-container {
-            max-width: 1200px;
+            max-width: 100%;
             margin: 0 auto;
             display: flex;
             flex-direction: column;

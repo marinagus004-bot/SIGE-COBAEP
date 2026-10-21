@@ -76,26 +76,11 @@ try {
     <title>Reportes de Conducta · COBAEP 27</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <link rel="stylesheet" href="../admin/style_dashboard_admin.css">
-    <link rel="stylesheet" href="../Prefectura/style_dashboard_prefectura.css">
-    <link rel="stylesheet" href="../Prefectura/style_creacion_reportes.css">
     
-    <style>
-        .overview-card .table-responsive { max-height: 450px; overflow-y: auto; }
-        .overview-card .table-responsive thead th { position: sticky; top: 0; background-color: #ffffff; z-index: 10; box-shadow: 0 1px 0 var(--line); }
-        .overview-card .table-responsive::-webkit-scrollbar { width: 6px; }
-        .overview-card .table-responsive::-webkit-scrollbar-track { background: transparent; }
-        .overview-card .table-responsive::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .date-divider td { background-color: #f0fdf4 !important; color: var(--green-700) !important; font-weight: 800 !important; font-size: 0.85rem; padding: 0.8rem 1.5rem !important; border-bottom: 2px solid var(--green-soft) !important; text-transform: uppercase; }
-        .action-buttons { display: flex; gap: 8px; justify-content: center; }
-        .btn-action { border: none; background: transparent; width: 30px; height: 30px; border-radius: var(--radius-sm); display: grid; place-items: center; cursor: pointer; transition: 0.2s ease; color: var(--muted); text-decoration: none; font-size: 0.9rem; }
-        .btn-edit:hover { background: #fef08a; color: #ca8a04; }
-        .btn-delete:hover { background: #fee2e2; color: #dc2626; }
-        #btnSubmit:disabled { background-color: #cbd5e1 !important; color: #64748b !important; cursor: not-allowed !important; box-shadow: none !important; }
-        
-        /* Ajuste para el custom-select dentro del modal para que no se oculte */
-        #modalEditarReporte .custom-select-options { z-index: 2050; }
-    </style>
+    <!-- Archivos CSS centralizados -->
+    <link rel="stylesheet" href="../admin/style_dashboard_admin.css">
+    <link rel="stylesheet" href="style_dashboard_prefectura.css">
+    <link rel="stylesheet" href="style_creacion_reportes.css">
 </head>
 <body>
     
@@ -117,7 +102,6 @@ try {
                     <i class="fa-solid fa-file-lines"></i>
                     <span>Creación de Reporte de Conducta</span>
                 </a>  
-                <!-- NUEVO MÓDULO EN EL MENÚ -->
                 <a href="expediente_alumnos.php" class="nav-item">
                     <i class="fas fa-folder-open"></i>
                     <span>Expediente de Alumnos</span>
@@ -140,7 +124,6 @@ try {
             </div>
         </div>
     </aside>
-
 
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
     
@@ -195,14 +178,14 @@ try {
                             <div class="custom-select-options" id="customSelectOptions">
                                 <div class="custom-select-search"><i class="fas fa-search"></i><input type="text" id="searchFalta" placeholder="Buscar regla..."></div>
                                 <ul class="options-list" id="faltaList">
-                                    <?php foreach ($tipos_falta as $falta): ?>
+                                    <?php foreach ($tipos_falta as$falta): ?>
                                        <li class="option-item" data-value="<?php echo $falta['id_tipo_falta']; ?>" data-sancion="<?php echo $falta['tipo_sancion']; ?>">
                                             <div style="display: flex; justify-content: space-between; align-items: start;">
                                                 <div style="flex: 1; padding-right: 10px;"><strong>Regla <?php echo $falta['numero_reglamento']; ?>:</strong> <?php echo htmlspecialchars($falta['descripcion_falta']); ?></div>
                                                 <div style="text-align: right; min-width: 60px;">
                                                     <?php if(!empty($falta['puntos_descuento'])): ?><span class="pts" style="display: block; margin-bottom: 4px; color:#b91c1c; font-weight:bold;">-<?php echo $falta['puntos_descuento']; ?> pts</span><?php endif; ?>
                                                     <?php if($falta['tipo_sancion'] === 'Suspension'): ?><span style="background: #000; color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: bold;">SUSPENSIÓN</span>
-                                                    <?php elseif($falta['requiere_citacion_tutor'] == 1 || $falta['tipo_sancion'] === 'Citacion'): ?><span style="background: #fef08a; color: #a16207; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: bold;">CITA TUTOR</span><?php endif; ?>
+                                                    <?php elseif($falta['requiere_citacion_tutor'] == 1 ||$falta['tipo_sancion'] === 'Citacion'): ?><span style="background: #fef08a; color: #a16207; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: bold;">CITA TUTOR</span><?php endif; ?>
                                                 </div>
                                             </div>
                                         </li>
@@ -256,28 +239,28 @@ try {
                                 <tr><td colspan="5" style="text-align: center; padding: 3rem;">No se encontraron reportes.</td></tr>
                             <?php else: 
                                 $fecha_actual_agrupacion = '';
-                                foreach ($ultimos_reportes as $reporte): 
+                                foreach ($ultimos_reportes as$reporte): 
                                     $fecha_fila_pura = date('Y-m-d', strtotime($reporte['fecha_hora']));
                                     $hora_formateada = date('h:i A', strtotime($reporte['fecha_hora']));
                                     
-                                    if ($fecha_actual_agrupacion !== $fecha_fila_pura) {
-                                        $fecha_actual_agrupacion = $fecha_fila_pura;
+                                    if ($fecha_actual_agrupacion !==$fecha_fila_pura) {
+                                        $fecha_actual_agrupacion =$fecha_fila_pura;
                                         echo '<tr class="date-divider"><td colspan="5"><i class="far fa-calendar-alt" style="margin-right: 8px;"></i> Reportes del día: ' . date('d/m/Y', strtotime($fecha_fila_pura)) . '</td></tr>';
                                     }
                             ?>
                             <tr>
                                 <td style="font-size: 0.75rem; color: var(--muted);"><strong><?php echo $hora_formateada; ?></strong></td>
                                 <td>
-                                    <strong><?php echo htmlspecialchars($reporte['apellido_paterno'] . ' ' . $reporte['nombre']); ?></strong><br>
+                                    <strong><?php echo htmlspecialchars($reporte['apellido_paterno'] . ' ' .$reporte['nombre']); ?></strong><br>
                                     <span style="font-size: 0.7rem; color: var(--muted);"><?php echo htmlspecialchars($reporte['matricula']); ?></span>
                                 </td>
                                 <td>
                                     <?php echo htmlspecialchars(mb_strimwidth($reporte['descripcion_falta'], 0, 35, '...')); ?><br>
                                     <?php if($reporte['tipo_sancion'] === 'Suspension'): ?><span style="display:inline-block; margin-top:2px; background: #000; color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; text-transform: uppercase;">Suspensión</span>
-                                    <?php elseif($reporte['requiere_citacion_tutor'] == 1 || $reporte['tipo_sancion'] === 'Citacion'): ?><span style="display:inline-block; margin-top:2px; background: #fef08a; color: #a16207; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; text-transform: uppercase;">Cita Tutor</span><?php endif; ?>
+                                    <?php elseif($reporte['requiere_citacion_tutor'] == 1 ||$reporte['tipo_sancion'] === 'Citacion'): ?><span style="display:inline-block; margin-top:2px; background: #fef08a; color: #a16207; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; text-transform: uppercase;">Cita Tutor</span><?php endif; ?>
                                 </td>
                                 <td>
-                                    <?php if(!empty($reporte['puntos_descontados']) && $reporte['puntos_descontados'] > 0): ?>
+                                    <?php if(!empty($reporte['puntos_descontados']) &&$reporte['puntos_descontados'] > 0): ?>
                                         <span class="status-badge-table status-falta">-<?php echo $reporte['puntos_descontados']; ?></span>
                                     <?php else: ?>
                                         <span style="color: var(--muted); font-size: 0.75rem; font-weight: 600; background: #f1f5f9; padding: 4px 8px; border-radius: 4px;">Sin Puntos</span>
@@ -289,7 +272,7 @@ try {
                                             data-id="<?php echo $reporte['id_reporte']; ?>"
                                             data-alumno="<?php echo $reporte['id_alumno']; ?>"
                                             data-matricula="<?php echo htmlspecialchars($reporte['matricula']); ?>"
-                                            data-nombre="<?php echo htmlspecialchars($reporte['apellido_paterno'] . ' ' . $reporte['nombre']); ?>"
+                                            data-nombre="<?php echo htmlspecialchars($reporte['apellido_paterno'] . ' ' .$reporte['nombre']); ?>"
                                             data-falta="<?php echo $reporte['id_tipo_falta']; ?>"
                                             data-obs="<?php echo htmlspecialchars($reporte['observaciones'] ?? ''); ?>"
                                             data-url="creacion_reportes.php"
@@ -340,7 +323,7 @@ try {
                             <div class="custom-select-options" id="editCustomSelectOptions">
                                 <div class="custom-select-search"><i class="fas fa-search"></i><input type="text" id="editSearchFalta" placeholder="Buscar regla..."></div>
                                 <ul class="options-list" id="editFaltaList">
-                                    <?php foreach ($tipos_falta as $falta): ?>
+                                    <?php foreach ($tipos_falta as$falta): ?>
                                        <li class="option-item edit-option-item" data-value="<?php echo $falta['id_tipo_falta']; ?>">
                                             <div style="display: flex; justify-content: space-between; align-items: start;">
                                                 <div style="flex: 1; padding-right: 10px;"><strong>Regla <?php echo $falta['numero_reglamento']; ?>:</strong> <?php echo htmlspecialchars($falta['descripcion_falta']); ?></div>
@@ -415,7 +398,7 @@ try {
         </div>
     </div>
 
-    <script src="../Prefectura/procesos/dashboard_prefecturas.js"></script>
+    <script src="procesos/dashboard_prefecturas.js"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
