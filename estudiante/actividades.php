@@ -9,12 +9,24 @@ if (!isset($_SESSION['id_usuario']) || $_SESSION['rol'] !== 'estudiante') {
 }
 
 $id_alumno = $_SESSION['id_usuario'];
-$nombre_usuario = isset($_SESSION['nombre']) ? htmlspecialchars($_SESSION['nombre'], ENT_QUOTES, 'UTF-8') : 'Alumno';
-$matricula = isset($_SESSION['matricula']) ? htmlspecialchars($_SESSION['matricula'], ENT_QUOTES, 'UTF-8') : 'Sin Matrícula';
+date_default_timezone_set('America/Mexico_City');
 
-// Obtener las clases de regularización a las que está inscrito el alumno
 try {
-    $stmt = $pdo->prepare("
+    // 1. Obtener datos básicos del alumno para el Header
+    $stmt = $pdo->prepare("SELECT nombre, apellido_paterno, matricula FROM ALUMNOS WHERE id_alumno = ?");
+    $stmt->execute([$id_alumno]);
+    $alumno = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$alumno) die("Error: Datos del alumno no encontrados.");
+
+    $nombre_pila = htmlspecialchars($alumno['nombre']);
+    $apellido_p = htmlspecialchars($alumno['apellido_paterno']);
+    $nombre_completo = $nombre_pila . ' ' . $apellido_p;
+    $iniciales = mb_substr($nombre_pila, 0, 1) . mb_substr($apellido_p, 0, 1);
+    $matricula = htmlspecialchars($alumno['matricula']);
+
+    // 2. Obtener las clases de regularización a las que está inscrito el alumno
+    $stmtClases = $pdo->prepare("
         SELECT cr.*, m.nombre AS maestro_nombre, m.apellido_paterno AS maestro_apellido 
         FROM CLASES_REGULARIZACION cr
         INNER JOIN CLASE_ALUMNO ca ON cr.id_clase = ca.id_clase
@@ -22,8 +34,9 @@ try {
         WHERE ca.id_alumno = ? AND cr.estatus = 'Activa'
         ORDER BY cr.fecha_inicio DESC
     ");
-    $stmt->execute([$id_alumno]);
-    $mis_regularizaciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $stmtClases->execute([$id_alumno]);
+    $mis_regularizaciones = $stmtClases->fetchAll(PDO::FETCH_ASSOC);
+
 } catch (PDOException $e) {
     error_log("Error cargando regularizaciones del alumno: " . $e->getMessage());
     $mis_regularizaciones = [];
@@ -34,15 +47,114 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mis Regularizaciones · SIGE COBAEP 27</title>
+    <meta name="theme-color" content="#063f2b">
+    <title>Mis Actividades · Panel Estudiante</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     
-   <link rel="stylesheet" href="style_dashboard_estud.css?v=<?php echo time(); ?>">
+    <!-- CSS Base -->
+    <link rel="stylesheet" href="style_dashboard_estud.css?v=<?php echo time(); ?>">
+
+    <style>
+        /* ==============================================================
+           CORE LAYOUT (Estándar para todos los módulos)
+        ============================================================== */
+        :root {
+            --sidebar-width: 260px;
+            --sidebar-collapsed-width: 80px;
+            --bg-main: #f8fafc;
+        }
+        body { background-color: var(--bg-main); margin: 0; padding: 0; overflow: hidden; box-sizing: border-box; }
+        *, *::before, *::after { box-sizing: border-box; }
+
+        .main-content {
+            margin-left: var(--sidebar-width); width: calc(100% - var(--sidebar-width));
+            padding: 1.2rem 2rem; height: 100vh; overflow-y: auto; transition: margin-left 0.3s ease, width 0.3s ease;
+        }
+        body.sidebar-collapsed .main-content { margin-left: var(--sidebar-collapsed-width); width: calc(100% - var(--sidebar-collapsed-width)); }
+        .dashboard-container { max-width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 1.5rem; }
+
+        /* HEADER Y PERFIL */
+        .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+        .topbar-left { display: flex; align-items: center; gap: 15px; }
+        
+        .header-icon { background: #059669; color: white; width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; box-shadow: 0 2px 4px rgba(5, 150, 105, 0.2); }
+        .topbar-left h1 { font-size: 1.4rem; font-weight: 800; color: #0f172a; margin: 0 0 0.1rem 0; letter-spacing: -0.5px; }
+        .topbar-left p { margin: 0; color: #64748b; font-size: 0.85rem; }
+        
+        .topbar-right { display: flex; align-items: center; gap: 10px; }
+        .date-pill { background: white; padding: 0.5rem 1rem; border-radius: 99px; font-size: 0.8rem; font-weight: 600; color: #475569; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 8px; }
+        .date-pill i { color: #059669; }
+
+        .profile-container { position: relative; }
+        .profile-pill { background: white; padding: 0.3rem 0.8rem 0.3rem 0.3rem; border-radius: 99px; display: flex; align-items: center; gap: 10px; border: 1px solid #e2e8f0; cursor: pointer; transition: background 0.2s; }
+        .profile-pill:hover { background: #f8fafc; }
+        .profile-pill .avatar { width: 34px; height: 34px; background: #063f2b; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; }
+        .profile-info strong { display: block; font-size: 0.85rem; color: #0f172a; }
+        .profile-info span { display: block; font-size: 0.7rem; color: #64748b; }
+        
+        .profile-dropdown { position: absolute; top: calc(100% + 10px); right: 0; background: white; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); width: 220px; opacity: 0; visibility: hidden; transform: translateY(-10px); transition: all 0.2s; z-index: 100; }
+        .profile-dropdown.active { opacity: 1; visibility: visible; transform: translateY(0); }
+        .profile-dropdown-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: #475569; text-decoration: none; font-size: 0.9rem; font-weight: 600; transition: all 0.2s; }
+        .profile-dropdown-item i { width: 16px; text-align: center; }
+        .profile-dropdown-item:first-child { border-radius: 12px 12px 0 0; }
+        .profile-dropdown-item:last-child { border-radius: 0 0 12px 12px; border-top: 1px solid #f1f5f9; color: #ef4444; }
+        .profile-dropdown-item:hover { background: #f8fafc; color: #0f172a; padding-left: 20px; }
+        .mobile-menu { display: none; background: none; border: none; padding: 0; font-size: 1.6rem; color: #0f172a; cursor: pointer; }
+
+        /* ==============================================================
+           DISEÑO DE TARJETAS DE ACTIVIDADES
+        ============================================================== */
+        .empty-state { background: white; border: 2px dashed #cbd5e1; border-radius: 16px; padding: 4rem 2rem; text-align: center; }
+        .empty-state i { font-size: 3.5rem; color: #10b981; margin-bottom: 1rem; }
+        .empty-state h3 { color: #0f172a; margin: 0 0 0.5rem 0; font-size: 1.2rem; }
+        .empty-state p { color: #64748b; margin: 0; font-size: 0.95rem; }
+
+        .activities-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
+
+        .activity-card { background: white; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); display: flex; flex-direction: column; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .activity-card:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
+
+        .activity-header { height: 130px; background-size: cover; background-position: center; background-repeat: no-repeat; position: relative; }
+        .activity-badge { position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); color: white; padding: 4px 10px; border-radius: 50px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .activity-body { padding: 1.25rem; flex: 1; display: flex; flex-direction: column; }
+        .activity-body h3 { margin: 0 0 0.5rem 0; color: #0f172a; font-size: 1.15rem; font-weight: 800; line-height: 1.3; }
+        .activity-body p { margin: 0 0 1rem 0; color: #64748b; font-size: 0.85rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; flex: 1; }
+
+        .activity-meta { background: #f8fafc; border-radius: 10px; padding: 12px; border: 1px solid #e2e8f0; margin-bottom: 1rem; }
+        .meta-item { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: #475569; font-weight: 600; margin-bottom: 6px; }
+        .meta-item:last-child { margin-bottom: 0; }
+        .meta-item i.fa-chalkboard-user { color: #059669; }
+        .meta-item i.fa-calendar-check { color: #ea580c; }
+
+        .activity-footer { padding: 0 1.25rem 1.25rem 1.25rem; }
+        .btn-enter { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; border-radius: 10px; font-weight: 700; font-size: 0.9rem; text-decoration: none; transition: 0.2s; }
+        .btn-enter:hover { background: #d1fae5; border-color: #34d399; }
+
+        /* ==============================================================
+           RESPONSIVE MOBILE
+        ============================================================== */
+        @media (max-width: 768px) {
+            body { overflow: auto; }
+            .main-content { margin-left: 0 !important; width: 100% !important; padding: 1rem; height: auto; overflow-y: visible; }
+            .topbar { flex-direction: column; align-items: stretch; gap: 0.8rem; }
+            .topbar-left { align-items: flex-start; }
+            .topbar-left h1 { font-size: 1.25rem; }
+            .mobile-menu { display: block; margin-top: 3px; }
+            .topbar-right { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
+            .date-pill, .profile-pill { width: 100%; justify-content: center; padding: 0.5rem; }
+            .activities-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 400px) { .topbar-right { grid-template-columns: 1fr; } }
+    </style>
 </head>
 <body>
 
-     <!-- ================= BARRA LATERAL ================= -->
+    <!-- ================= BARRA LATERAL ================= -->
     <aside class="sidebar" id="sidebar">
         <button id="collapseToggle" class="collapse-toggle" aria-label="Colapsar menú"><i class="fas fa-chevron-left"></i></button>
         <div class="sidebar-inner">
@@ -56,7 +168,10 @@ try {
                 <a href="dashboard_estud.php" class="nav-item"><i class="fas fa-home"></i> <span>Inicio</span></a>
                 <a href="mis_asistencias.php" class="nav-item"><i class="far fa-calendar-check"></i> <span>Mis Asistencias</span></a>
                 <a href="horario_clases.php" class="nav-item"><i class="far fa-calendar-alt"></i> <span>Horario de Clases</span></a>
-                <a href="actividades.php" class="nav-item active"><i class="fas fa-star"></i> <span>Actividades Escolares</span></a>
+                
+                <span class="nav-heading">Académico</span>
+                <a href="actividades_escolares.php" class="nav-item"><i class="fas fa-book-open"></i> <span>Actividades Escolares</span></a>
+                <a href="actividades.php" class="nav-item active"><i class="fas fa-star"></i> <span>Regularizaciones</span></a>
 
                 <span class="nav-heading">Información</span>
                 <a href="avisos.php" class="nav-item"><i class="far fa-bell"></i> <span>Avisos</span></a>
@@ -74,98 +189,183 @@ try {
         </div>
     </aside>
 
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
     <!-- ================= CONTENIDO PRINCIPAL ================= -->
     <main class="main-content">
-        
-        <!-- TOPBAR (Basada en tu captura) -->
-        <header class="topbar">
-            <div class="topbar-left">
-                <button class="mobile-menu"><i class="fas fa-bars"></i></button>
-                <div>
-                    <h1 style="display:flex; align-items:center; gap:10px;">
-                        <div style="background:var(--green); color:#fff; width:35px; height:35px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1rem;"><i class="fas fa-book-open"></i></div>
-                        Mis Regularizaciones
-                    </h1>
-                    <p>Consulta tus actividades asignadas para recuperar calificación.</p>
-                </div>
-            </div>
-            <div class="topbar-right">
-                <div class="date-pill">
-                    <i class="far fa-calendar"></i>
-                    <span><?php echo date('d/m/Y, h:i a'); ?></span>
-                </div>
-                <div class="profile-pill" style="display:flex; align-items:center; gap:10px; background:#fff; border:1px solid var(--line); padding:5px 15px 5px 5px; border-radius:30px;">
-                    <div style="background:#f1f5f9; color:#475569; width:35px; height:35px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700;">
-                        <?php echo substr($nombre_usuario, 0, 2); ?>
+        <div class="dashboard-container">
+            
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="mobile-menu" id="mobileMenu" type="button"><i class="fas fa-bars"></i></button>
+                    <div style="display:flex; align-items:center; gap: 15px;">
+                        <div class="header-icon"><i class="fas fa-book-open"></i></div>
+                        <div>
+                            <h1>Mis Regularizaciones</h1>
+                            <p>Consulta tus actividades asignadas para recuperar calificación.</p>
+                        </div>
                     </div>
-                    <div style="line-height:1.2;">
-                        <strong style="display:block; font-size:0.85rem; color:var(--ink);"><?php echo $nombre_usuario; ?></strong>
-                        <span style="font-size:0.7rem; color:var(--muted);"><?php echo $matricula; ?></span>
+                </div>
+
+                <div class="topbar-right">
+                    <div class="date-pill">
+                        <i class="far fa-calendar"></i>
+                        <span id="fechaTexto"><?php echo date('d/m/Y, h:i a'); ?></span>
                     </div>
-                    <i class="fas fa-chevron-down" style="color:var(--muted); font-size:0.8rem; margin-left:10px;"></i>
-                </div>
-            </div>
-        </header>
-
-        <!-- GRID DE CLASES INSCRITAS -->
-        <section class="clases-container" style="padding: 20px 0;">
-            <?php if (empty($mis_regularizaciones)): ?>
-                <div style="background:#fff; border:1px dashed #cbd5e1; border-radius:20px; padding:50px 20px; text-align:center;">
-                    <i class="fas fa-check-circle" style="font-size:3rem; color:#10b981; margin-bottom:15px;"></i>
-                    <h3 style="color:var(--ink); margin-bottom:5px;">Todo al corriente</h3>
-                    <p style="color:var(--muted);">No tienes materias en proceso de regularización en este momento.</p>
-                </div>
-            <?php else: ?>
-                <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:25px;">
-                    <?php foreach ($mis_regularizaciones as $clase): ?>
-                        
-                        <?php 
-                            // 1. Degradado por defecto si no hay imagen
-                            $bg_image = "linear-gradient(145deg, #10251d, #063f2b)";
-                            
-                            // 2. Si la base de datos SÍ tiene una imagen registrada
-                            if (!empty($clase['imagen_portada'])) {
-                                // Aseguramos la ruta correcta (sale de estudiante/ y entra a uploads/)
-                                $ruta_img = '../' . $clase['imagen_portada'];
-                                // Mezclamos un degradado oscuro con la URL de la imagen
-                                $bg_image = "linear-gradient(rgba(16, 37, 29, 0.4), rgba(16, 37, 29, 0.7)), url('" . htmlspecialchars($ruta_img) . "')";
-                            }
-                        ?>
-
-                        <div style="background:#fff; border:1px solid var(--line); border-radius:16px; overflow:hidden; box-shadow:0 4px 15px rgba(0,0,0,0.05); display:flex; flex-direction:column;">
-                            
-                            <!-- APLICAMOS EL BLINDAJE CSS DESGLOSADO -->
-                            <div style="height:120px; background-image: <?php echo $bg_image; ?>; background-size: cover; background-position: center; background-repeat: no-repeat; padding:15px; position:relative;">
-                                <!-- Aquí adentro puedes poner el estatus de la materia si lo deseas -->
+                    
+                    <div class="profile-container">
+                        <div class="profile-pill" id="profileBtn">
+                            <div class="avatar"><?php echo htmlspecialchars($iniciales); ?></div>
+                            <div class="profile-info">
+                                <strong><?php echo $nombre_pila; ?></strong>
+                                <span>Matrícula: <?php echo htmlspecialchars($matricula); ?></span>
                             </div>
+                            <i class="fas fa-chevron-down" style="color: #94a3b8; margin-left: 5px; font-size: 0.8rem;"></i>
+                        </div>
+                        
+                        <div class="profile-dropdown" id="profileDropdown">
+                            <a href="perfil.php" class="profile-dropdown-item"><i class="far fa-user-circle"></i> Mi Perfil</a>
+                            <a href="../logout.php" class="profile-dropdown-item"><i class="fas fa-arrow-right-from-bracket"></i> Cerrar Sesión</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
 
-                            <div style="padding:20px; flex:1;">
-                                <h3 style="margin:0 0 10px 0; color:var(--ink); font-size:1.2rem;"><?php echo htmlspecialchars($clase['nombre_materia']); ?></h3>
-                                <p style="margin:0 0 15px 0; color:var(--muted); font-size:0.85rem; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
-                                    <?php echo htmlspecialchars($clase['descripcion']); ?>
-                                </p>
+            <!-- GRID DE CLASES INSCRITAS -->
+            <section class="clases-section">
+                <?php if (empty($mis_regularizaciones)): ?>
+                    
+                    <div class="empty-state">
+                        <i class="fas fa-check-circle"></i>
+                        <h3>Todo al corriente</h3>
+                        <p>No tienes materias en proceso de regularización en este momento.</p>
+                    </div>
+                    
+                <?php else: ?>
+                    
+                    <div class="activities-grid">
+                        <?php foreach ($mis_regularizaciones as $clase): ?>
+                            
+                            <?php 
+                                // Degradado por defecto si no hay imagen
+                                $bg_image = "linear-gradient(145deg, #0f172a, #063f2b)";
                                 
-                                <div style="background:#f8fafc; border-radius:10px; padding:12px; border:1px solid var(--line);">
-                                    <div style="display:flex; align-items:center; gap:8px; font-size:0.8rem; color:var(--muted); font-weight:600; margin-bottom:8px;">
-                                        <i class="fas fa-chalkboard-user" style="color:var(--green);"></i> 
-                                        <span>Docente: <?php echo htmlspecialchars($clase['maestro_nombre'] . ' ' . $clase['maestro_apellido']); ?></span>
-                                    </div>
-                                    <div style="display:flex; align-items:center; gap:8px; font-size:0.8rem; color:var(--muted); font-weight:600;">
-                                        <i class="far fa-calendar-check" style="color:var(--orange);"></i> 
-                                        <span>Límite: <?php echo date('d/m/Y', strtotime($clase['fecha_fin'])); ?></span>
+                                // Si la base de datos SÍ tiene una imagen registrada
+                                if (!empty($clase['imagen_portada'])) {
+                                    $ruta_img = '../' . $clase['imagen_portada'];
+                                    $bg_image = "linear-gradient(rgba(15, 23, 42, 0.4), rgba(15, 23, 42, 0.8)), url('" . htmlspecialchars($ruta_img) . "')";
+                                }
+                            ?>
+
+                            <div class="activity-card">
+                                
+                                <div class="activity-header" style="background-image: <?php echo $bg_image; ?>;">
+                                    <span class="activity-badge">Regularización</span>
+                                </div>
+
+                                <div class="activity-body">
+                                    <h3><?php echo htmlspecialchars($clase['nombre_materia']); ?></h3>
+                                    <p><?php echo htmlspecialchars($clase['descripcion']); ?></p>
+                                    
+                                    <div class="activity-meta">
+                                        <div class="meta-item">
+                                            <i class="fas fa-chalkboard-user"></i> 
+                                            <span>Docente: <?php echo htmlspecialchars($clase['maestro_nombre'] . ' ' . $clase['maestro_apellido']); ?></span>
+                                        </div>
+                                        <div class="meta-item">
+                                            <i class="far fa-calendar-check"></i> 
+                                            <span>Límite: <?php echo date('d/m/Y', strtotime($clase['fecha_fin'])); ?></span>
+                                        </div>
                                     </div>
                                 </div>
+                                
+                                <div class="activity-footer">
+                                    <a href="espacio_regularizacion.php?id=<?php echo $clase['id_clase']; ?>" class="btn-enter">
+                                        Entrar al espacio <i class="fas fa-arrow-right"></i>
+                                    </a>
+                                </div>
                             </div>
-                            <div style="padding:15px 20px; border-top:1px solid var(--line);">
-                                <a href="espacio_regularizacion.php?id=<?php echo $clase['id_clase']; ?>" style="display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:12px; background:var(--green-soft); color:var(--green-800); border-radius:10px; font-weight:700; font-size:0.9rem; text-decoration:none; box-sizing:border-box;">
-                                    Entrar al espacio <i class="fas fa-arrow-right"></i>
-                                </a>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            <?php endif; ?>
-        </section>
+                            
+                        <?php endforeach; ?>
+                    </div>
+                    
+                <?php endif; ?>
+            </section>
+            
+        </div>
     </main>
+
+    <!-- SCRIPTS MANTENIDOS PARA FUNCIONAMIENTO DE MENÚ Y RELOJ -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const mobileMenu = document.getElementById('mobileMenu');
+            const collapseToggle = document.getElementById('collapseToggle');
+            const body = document.body;
+
+            // --- LÓGICA MENÚ LATERAL ---
+            if (localStorage.getItem('sidebarCollapsed') === 'true') body.classList.add('sidebar-collapsed');
+
+            if (collapseToggle) {
+                collapseToggle.addEventListener('click', () => {
+                    body.classList.toggle('sidebar-collapsed');
+                    localStorage.setItem('sidebarCollapsed', body.classList.contains('sidebar-collapsed'));
+                });
+            }
+
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 768) {
+                    sidebar.classList.remove('mobile-open');
+                    overlay.classList.remove('visible');
+                    body.classList.remove('menu-open');
+                }
+            });
+
+            if (mobileMenu) {
+                mobileMenu.addEventListener('click', () => {
+                    sidebar.classList.add('mobile-open');
+                    overlay.classList.add('visible');
+                    body.classList.add('menu-open');
+                });
+            }
+            if (overlay) {
+                overlay.addEventListener('click', () => {
+                    sidebar.classList.remove('mobile-open');
+                    overlay.classList.remove('visible');
+                    body.classList.remove('menu-open');
+                });
+            }
+
+            // --- LÓGICA DROPDOWN DEL PERFIL ---
+            const profileBtn = document.getElementById('profileBtn');
+            const profileDropdown = document.getElementById('profileDropdown');
+
+            if (profileBtn && profileDropdown) {
+                profileBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    profileDropdown.classList.toggle('active');
+                });
+                document.addEventListener('click', (e) => {
+                    if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
+                        profileDropdown.classList.remove('active');
+                    }
+                });
+            }
+
+            // --- RELOJ ---
+            const fechaTexto = document.getElementById('fechaTexto');
+            function actualizarHora() {
+                if (!fechaTexto) return;
+                const now = new Date();
+                fechaTexto.textContent = now.toLocaleString('es-MX', {
+                    day: '2-digit', month: '2-digit', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                });
+            }
+            actualizarHora();
+            setInterval(actualizarHora, 60000);
+        });
+    </script>
 </body>
 </html>

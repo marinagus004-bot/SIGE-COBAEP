@@ -36,8 +36,7 @@ try {
         $generacion = $anio_ingreso . ' - ' . ($anio_ingreso + 3);
     }
 
-    // 3. Obtener el archivo de horario de forma segura
-    // Separado para no romper la página si la columna 'horario_archivo' aún no existe
+    // 3. Obtener el archivo de horario de forma segura (Sólo lectura)
     try {
         $stmtHorario = $pdo->prepare("SELECT horario_archivo FROM ALUMNOS WHERE id_alumno = ?");
         $stmtHorario->execute([$id_alumno]);
@@ -46,7 +45,6 @@ try {
             $mi_horario = $horario_data['horario_archivo'];
         }
     } catch (PDOException $e) {
-        // Ignorar el error silenciosamente si la columna no existe en MySQL
         $mi_horario = null;
     }
 
@@ -67,12 +65,12 @@ try {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     
-    <!-- CSS Base -->
+    <!-- CSS Base unificado -->
     <link rel="stylesheet" href="style_dashboard_estud.css?v=<?php echo time(); ?>">
 
     <style>
         /* ==============================================================
-           CORE LAYOUT ESTUDIANTE (Idéntico al Dashboard)
+           CORE LAYOUT ESTUDIANTE
         ============================================================== */
         :root {
             --sidebar-width: 260px;
@@ -87,7 +85,7 @@ try {
             padding: 1.2rem 2rem; height: 100vh; overflow-y: auto; transition: margin-left 0.3s ease, width 0.3s ease;
         }
         body.sidebar-collapsed .main-content { margin-left: var(--sidebar-collapsed-width); width: calc(100% - var(--sidebar-collapsed-width)); }
-        .dashboard-container { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 1rem; }
+        .dashboard-container { max-width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 1rem; }
 
         /* HEADER Y PERFIL */
         .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
@@ -116,66 +114,39 @@ try {
         .mobile-menu { display: none; background: none; border: none; padding: 0; font-size: 1.6rem; color: #0f172a; cursor: pointer; }
 
         /* ==============================================================
-           DISEÑO DEL HORARIO (Subida y Visor)
+           DISEÑO DEL VISOR DE HORARIO (Ancho Completo)
         ============================================================== */
         .layout-horario {
-            display: grid;
-            grid-template-columns: 1fr 2fr; 
-            gap: 1.5rem;
-            align-items: start;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
         }
 
-        .card-modern {
+        .viewer-card {
             background: white; border-radius: 12px; border: 1px solid #e2e8f0;
             padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+            width: 100%;
         }
 
-        .card-modern h3 { margin: 0 0 0.5rem 0; font-size: 1.1rem; color: #0f172a; display: flex; align-items: center; gap: 8px; }
-        .card-modern .text-muted { color: #64748b; font-size: 0.85rem; margin-bottom: 1.5rem; line-height: 1.5; }
+        .viewer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #e2e8f0; }
+        .viewer-header h3 { margin: 0; font-size: 1.1rem; color: #0f172a; display: flex; align-items: center; gap: 8px; }
         .icon-green { color: #059669; }
 
-        /* Alertas */
-        .alert { padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-        .alert-success { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
-        .alert-error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
-
-        /* Zona de Subida */
-        .upload-zone-modern {
-            border: 2px dashed #cbd5e1; border-radius: 12px; padding: 2rem 1rem;
-            text-align: center; cursor: pointer; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; gap: 10px; background: #f8fafc;
-            transition: all 0.2s ease; margin-bottom: 1rem;
-        }
-        .upload-zone-modern:hover { border-color: #059669; background: #ecfdf5; }
-        .upload-icon-circle { width: 50px; height: 50px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: #059669; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .upload-title { font-weight: 700; color: #0f172a; font-size: 0.95rem; }
-        .upload-desc { font-size: 0.75rem; color: #64748b; }
-        .hidden-input { display: none; }
-        
-        .file-name-badge { background: #e0f2fe; color: #0369a1; padding: 6px 12px; border-radius: 99px; font-size: 0.8rem; font-weight: 600; margin-top: 10px; align-items: center; gap: 5px; }
-
-        .btn-guardar-full { width: 100%; background: #059669; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: background 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; }
-        .btn-guardar-full:hover { background: #047857; }
-
-        /* Visor */
-        .viewer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #e2e8f0; }
         .btn-outline-small { border: 1px solid #cbd5e1; background: white; color: #475569; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 6px; transition: all 0.2s; }
         .btn-outline-small:hover { background: #f8fafc; border-color: #94a3b8; color: #0f172a; }
 
-        .viewer-body { background: #f8fafc; border-radius: 8px; min-height: 500px; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid #e2e8f0; }
-        .horario-iframe { width: 100%; height: 600px; border: none; }
-        .horario-img { max-width: 100%; height: auto; display: block; }
+        .viewer-body { background: #f8fafc; border-radius: 8px; min-height: 600px; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid #e2e8f0; }
+        .horario-iframe { width: 100%; height: 650px; border: none; }
+        .horario-img { max-width: 100%; height: auto; display: block; border-radius: 4px; }
         
         .empty-state-horario { text-align: center; color: #94a3b8; display: flex; flex-direction: column; align-items: center; gap: 10px; }
         .empty-state-horario i { font-size: 3rem; }
         .empty-state-horario span { font-size: 0.95rem; font-weight: 500; }
+        .empty-state-horario p { font-size: 0.85rem; color: #cbd5e1; margin: 0; }
 
         /* ==============================================================
            RESPONSIVE MOBILE
         ============================================================== */
-        @media (max-width: 900px) {
-            .layout-horario { grid-template-columns: 1fr; }
-        }
         @media (max-width: 768px) {
             body { overflow: auto; }
             .main-content { margin-left: 0 !important; width: 100% !important; padding: 1rem; height: auto; overflow-y: visible; }
@@ -185,8 +156,8 @@ try {
             .mobile-menu { display: block; margin-top: 3px; }
             .topbar-right { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
             .date-pill, .profile-pill { width: 100%; justify-content: center; padding: 0.5rem; }
-            .viewer-body { min-height: 300px; }
-            .horario-iframe { height: 400px; }
+            .viewer-body { min-height: 400px; }
+            .horario-iframe { height: 450px; }
         }
         @media (max-width: 400px) { .topbar-right { grid-template-columns: 1fr; } }
     </style>
@@ -208,7 +179,9 @@ try {
                 
                 <a href="horario_clases.php" class="nav-item active"><i class="far fa-calendar-alt"></i> <span>Horario de Clases</span></a>
                 
-                <a href="actividades.php" class="nav-item"><i class="fas fa-star"></i> <span>Actividades Escolares</span></a>
+                <span class="nav-heading">Académico</span>
+                <a href="actividades_escolares.php" class="nav-item"><i class="fas fa-book-open"></i> <span>Actividades Escolares</span></a>
+                <a href="actividades.php" class="nav-item"><i class="fas fa-star"></i> <span>Regularizaciones</span></a>
 
                 <span class="nav-heading">Información</span>
                 <a href="avisos.php" class="nav-item"><i class="far fa-bell"></i> <span>Avisos</span></a>
@@ -236,7 +209,7 @@ try {
                     <button class="mobile-menu" id="mobileMenu" type="button"><i class="fas fa-bars"></i></button>
                     <div>
                         <h1>Horario de Clases</h1>
-                        <p>Consulta y gestiona tu carga académica.</p>
+                        <p>Consulta tu carga académica asignada para este semestre.</p>
                     </div>
                 </div>
 
@@ -266,66 +239,34 @@ try {
 
             <div class="layout-horario">
                 
-                <div class="col-upload">
-                    <div class="card-modern">
-                        <h3><i class="fas fa-cloud-upload-alt icon-green"></i> Subir Horario</h3>
-                        <p class="text-muted">Si tienes tu horario en PDF o Imagen, súbelo aquí para consultarlo fácilmente en la plataforma.</p>
-                        
-                        <?php if (isset($_GET['exito'])): ?>
-                            <div class="alert alert-success"><i class="fas fa-check-circle"></i> <?php echo htmlspecialchars($_GET['exito']); ?></div>
+                <!-- VISOR DEL HORARIO (Única columna) -->
+                <div class="viewer-card">
+                    <div class="viewer-header">
+                        <h3><i class="far fa-calendar-check icon-green"></i> Tu Horario Actual</h3>
+                        <?php if (!empty($mi_horario)): ?>
+                            <a href="../<?php echo htmlspecialchars($mi_horario); ?>" download class="btn-outline-small">
+                                <i class="fas fa-download"></i> Descargar PDF
+                            </a>
                         <?php endif; ?>
-                        <?php if (isset($_GET['error'])): ?>
-                            <div class="alert alert-error"><i class="fas fa-exclamation-circle"></i> <?php echo htmlspecialchars($_GET['error']); ?></div>
-                        <?php endif; ?>
-
-                        <!-- Script de guardado -->
-                        <form action="../procesos/subir_horario_estud.php" method="POST" enctype="multipart/form-data">
-                            <label for="archivo_horario" class="upload-zone-modern">
-                                <div class="upload-icon-circle"><i class="fas fa-cloud-upload-alt"></i></div>
-                                <span class="upload-title">Haz clic para seleccionar</span>
-                                <span class="upload-desc">Admite: PDF, JPG, PNG</span>
-                                <input type="file" name="archivo_horario" id="archivo_horario" accept=".pdf, .jpg, .jpeg, .png, .webp" required class="hidden-input">
-                                
-                                <div id="file-name-display" class="file-name-badge" style="display: none;">
-                                    <i class="fas fa-paperclip"></i> <span id="file-name-text"></span>
-                                </div>
-                            </label>
-
-                            <button type="submit" class="btn-guardar-full">
-                                <i class="fas fa-save"></i> Guardar Horario
-                            </button>
-                        </form>
                     </div>
-                </div>
-
-                <div class="col-viewer">
-                    <div class="card-modern viewer-card">
-                        <div class="viewer-header">
-                            <h3><i class="far fa-calendar-check icon-green"></i> Tu Horario Actual</h3>
-                            <?php if (!empty($mi_horario)): ?>
-                                <a href="../<?php echo htmlspecialchars($mi_horario); ?>" download class="btn-outline-small">
-                                    <i class="fas fa-download"></i> Descargar
-                                </a>
-                            <?php endif; ?>
-                        </div>
-                        
-                        <div class="viewer-body">
-                            <?php if (empty($mi_horario)): ?>
-                                <div class="empty-state-horario">
-                                    <i class="far fa-calendar-times"></i>
-                                    <span>No has subido tu horario aún.</span>
-                                </div>
+                    
+                    <div class="viewer-body">
+                        <?php if (empty($mi_horario)): ?>
+                            <div class="empty-state-horario">
+                                <i class="far fa-calendar-times"></i>
+                                <span>El área administrativa aún no ha subido tu horario.</span>
+                                <p>Por favor, vuelve a revisar más tarde.</p>
+                            </div>
+                        <?php else: ?>
+                            <?php 
+                                $ext = strtolower(pathinfo($mi_horario, PATHINFO_EXTENSION)); 
+                                if ($ext === 'pdf'):
+                            ?>
+                                <iframe src="../<?php echo htmlspecialchars($mi_horario); ?>" class="horario-iframe" frameborder="0"></iframe>
                             <?php else: ?>
-                                <?php 
-                                    $ext = strtolower(pathinfo($mi_horario, PATHINFO_EXTENSION)); 
-                                    if ($ext === 'pdf'):
-                                ?>
-                                    <iframe src="../<?php echo htmlspecialchars($mi_horario); ?>" class="horario-iframe" frameborder="0"></iframe>
-                                <?php else: ?>
-                                    <img src="../<?php echo htmlspecialchars($mi_horario); ?>" alt="Mi Horario" class="horario-img">
-                                <?php endif; ?>
+                                <img src="../<?php echo htmlspecialchars($mi_horario); ?>" alt="Mi Horario" class="horario-img">
                             <?php endif; ?>
-                        </div>
+                        <?php endif; ?>
                     </div>
                 </div>
 
@@ -399,19 +340,6 @@ try {
             }
             actualizarHora();
             setInterval(actualizarHora, 60000);
-
-            // Mostrar el nombre del archivo seleccionado
-            document.getElementById('archivo_horario').addEventListener('change', function(e) {
-                const fileNameDisplay = document.getElementById('file-name-display');
-                const fileNameText = document.getElementById('file-name-text');
-                
-                if (this.files && this.files.length > 0) {
-                    fileNameText.textContent = this.files[0].name;
-                    fileNameDisplay.style.display = 'inline-flex';
-                } else {
-                    fileNameDisplay.style.display = 'none';
-                }
-            });
         });
     </script>
 </body>

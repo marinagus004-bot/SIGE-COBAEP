@@ -300,7 +300,10 @@ try {
                 <a href="dashboard_estud.php" class="nav-item"><i class="fas fa-home"></i> <span>Inicio</span></a>
                 <a href="mis_asistencias.php" class="nav-item"><i class="far fa-calendar-check"></i> <span>Mis Asistencias</span></a>
                 <a href="horario_clases.php" class="nav-item"><i class="far fa-calendar-alt"></i> <span>Horario de Clases</span></a>
-                <a href="actividades.php" class="nav-item"><i class="fas fa-star"></i> <span>Actividades Escolares</span></a>
+                
+                <span class="nav-heading">Académico</span>
+                <a href="actividades_escolares.php" class="nav-item"><i class="fas fa-book-open"></i> <span>Actividades Escolares</span></a>
+                 <a href="actividades.php" class="nav-item"><i class="fas fa-star"></i> <span>Regularizaciones</span></a>
 
                 <span class="nav-heading">Información</span>
                 <a href="avisos.php" class="nav-item"><i class="far fa-bell"></i> <span>Avisos</span></a>
