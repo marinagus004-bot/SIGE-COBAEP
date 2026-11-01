@@ -113,7 +113,7 @@
     background: #ffffff;
     border-radius: 20px;
     padding: 24px;
-    box-shadow: var(--shadow-sm, 0 4px 18px rgba(9, 48, 32, .05));
+    box-shadow: var(--shadow-sm, 0 4px 18px rgba(6, 55, 34, 0.05));
     border: 1px solid var(--line, #e8efeb);
     border-top: 4px solid var(--green, #16a05d);
     transition: transform 0.25s ease, box-shadow 0.25s ease;
@@ -137,7 +137,7 @@
 .card-grupo h3 {
     font-size: 1.25rem;
     font-weight: 800;
-    color: var(--ink, #10251d);
+    color: var(--ink, #083e29);
     margin: 0;
     letter-spacing: -0.02em;
 }
@@ -549,4 +549,212 @@
     .card-actions {
         flex-wrap: wrap; /* Por si el texto del botón es muy largo */
     }
+}
+
+/* =========================================================
+   ESTILOS ESPECÍFICOS PARA TURNO INTERMEDIO
+   ========================================================= */
+
+/* Cambia la barra superior de la tarjeta a color naranja/ámbar */
+.card-grupo.card-intermedio {
+    border-top: 4px solid #f59e0b; 
+}
+
+/* Cambia el color del badge (etiqueta) a tonos naranjas */
+.badge-status.badge-intermedio {
+    background: #ffedd5; /* Fondo naranja claro */
+    color: #b45309;      /* Texto naranja oscuro */
+}
+
+/* =========================================================
+   ESTILOS DEL TOGGLE SWITCH (INTERRUPTOR)
+   ========================================================= */
+.toggle-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #f8faf9;
+    padding: 8px 14px;
+    border-radius: 50px;
+    border: 1px solid var(--line, #e8efeb);
+}
+
+.toggle-label {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--muted, #6d7f77);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* El interruptor en sí */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 46px;
+    height: 24px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #cbd5e1;
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+input:checked + .slider {
+    background-color: var(--green, #16a05d);
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px var(--green, #16a05d);
+}
+
+input:checked + .slider:before {
+    transform: translateX(22px);
+}
+
+.slider.round {
+    border-radius: 24px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+/* =========================================================
+   ESTILOS DE LA VISTA AGRUPADA (CARPETAS)
+   ========================================================= */
+.card-folder {
+    position: relative;
+    padding-top: 35px; /* Más espacio arriba para el icono */
+    border: 2px dashed var(--line, #e8efeb); /* Aspecto distinto para diferenciarlo */
+    border-top: none;
+}
+
+.card-folder:hover {
+    border: 2px dashed var(--green, #16a05d);
+}
+
+.card-folder.card-intermedio {
+    border-color: #fde68a;
+}
+.card-folder.card-intermedio:hover {
+    border-color: #f59e0b;
+}
+
+/* Icono flotante que simula la pestaña de una carpeta */
+.card-folder-icon {
+    position: absolute;
+    top: -15px;
+    left: 20px;
+    background: var(--green, #16a05d);
+    color: white;
+    width: 45px;
+    height: 45px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    box-shadow: 0 4px 10px rgba(22, 160, 93, 0.3);
+}
+
+.card-folder-icon.icon-intermedio {
+    background: #f59e0b;
+    box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3);
+}
+
+/* =========================================================
+   ESTILOS DEL BUSCADOR EN TIEMPO REAL
+   ========================================================= */
+.search-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-input {
+    padding: 10px 16px 10px 40px;
+    border-radius: 12px;
+    border: 1px solid var(--line, #e8efeb);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    width: 250px;
+    transition: all 0.3s ease;
+    background: #f8faf9;
+    color: var(--ink, #10251d);
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--green, #16a05d);
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(22, 160, 93, 0.1);
+    width: 280px; /* Se expande ligeramente al hacer clic */
+}
+
+.search-input::placeholder {
+    color: var(--muted-2, #91a099);
+}
+
+.search-icon {
+    position: absolute;
+    left: 14px;
+    color: var(--muted, #6d7f77);
+    pointer-events: none;
+    font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    .search-input { width: 100%; }
+    .search-input:focus { width: 100%; }
+    .search-container { width: 100%; }
+}
+
+/* =========================================================
+   ESTILOS DEL SELECTOR DE TURNO (SPINNER)
+   ========================================================= */
+.search-select {
+    padding: 10px 16px 10px 12px;
+    border-radius: 12px;
+    border: 1px solid var(--line, #e8efeb);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    background: #f8faf9;
+    color: var(--ink, #0a4f34);
+    cursor: pointer;
+    outline: none;
+    transition: all 0.3s ease;
+    height: 40px; /* Para que mida lo mismo que el buscador */
+}
+
+.search-select:focus, .search-select:hover {
+    border-color: var(--green, #16a05d);
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(22, 160, 93, 0.1);
+}
+
+@media (max-width: 768px) {
+    .search-select { width: 100%; }
 }

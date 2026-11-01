@@ -1,0 +1,244 @@
+/* =========================================
+   ESTILOS PARA ASIGNACIÓN MASIVA
+   ========================================= */
+
+/* Layout dividido en 2 columnas */
+.split-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    align-items: start;
+}
+
+/* Paneles blancos */
+.panel {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    border: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.panel-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8fafc;
+}
+
+.panel-header h2 {
+    margin: 0;
+    font-size: 1.15rem;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Buscador interno de cada panel */
+.search-box {
+    position: relative;
+    padding: 15px 24px 0 24px;
+}
+
+.search-box i {
+    position: absolute;
+    left: 40px;
+    top: 30px;
+    color: #94a3b8;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 12px 12px 12px 40px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    outline: none;
+    transition: all 0.2s ease;
+    background: #f1f5f9;
+}
+
+.search-box input:focus {
+    background: #ffffff;
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+/* Contenedor con scroll para las listas */
+.list-container {
+    padding: 15px 24px 24px 24px;
+    max-height: 550px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Estilo del scrollbar para las listas */
+.list-container::-webkit-scrollbar {
+    width: 6px;
+}
+.list-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+.list-container::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+/* Tarjetas seleccionables (Grupos y Docentes) */
+.select-card {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #ffffff;
+    user-select: none;
+}
+
+.select-card:hover {
+    border-color: #cbd5e1;
+    background: #f8fafc;
+}
+
+/* Ocultar el radio/checkbox original pero mantener su función */
+.select-card input[type="radio"],
+.select-card input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+}
+
+/* Contenido de la tarjeta */
+.card-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.item-title {
+    display: block;
+    font-weight: 600;
+    color: #1e293b;
+    font-size: 1rem;
+}
+
+.item-subtitle {
+    display: block;
+    color: #64748b;
+    font-size: 0.85rem;
+    margin-top: 2px;
+}
+
+/* Avatar circular para docentes */
+.avatar-docente {
+    width: 36px;
+    height: 36px;
+    background: #f1f5f9;
+    color: #64748b;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+}
+
+/* Icono de check (Docentes) */
+.check-icon {
+    font-size: 1.25rem;
+    color: #e2e8f0;
+    transition: color 0.2s ease;
+}
+
+/* ESTADOS ACTIVOS (Cuando el input está seleccionado) */
+.item-grupo input[type="radio"]:checked + .card-content {
+    color: #10b981;
+}
+
+.item-grupo:has(input[type="radio"]:checked) {
+    border-color: #10b981;
+    background: #ecfdf5;
+}
+
+.item-docente:has(input[type="checkbox"]:checked) {
+    border-color: #0ea5e9;
+    background: #f0f9ff;
+}
+
+.item-docente:has(input[type="checkbox"]:checked) .check-icon {
+    color: #0ea5e9;
+}
+
+.item-docente:has(input[type="checkbox"]:checked) .avatar-docente {
+    background: #0ea5e9;
+    color: white;
+}
+
+/* Badges de Turno */
+.badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.badge.matutino {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.badge.intermedio {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+/* Footer fijo en el panel 2 para el botón de guardar */
+.sticky-footer {
+    padding: 20px 24px;
+    border-top: 1px solid #e2e8f0;
+    background: #f8fafc;
+    margin-top: auto;
+}
+
+.btn-guardar {
+    width: 100%;
+    background: #08853e;
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.btn-guardar:hover {
+    background: #0f766e;
+}
+
+.btn-guardar:active {
+    transform: scale(0.98);
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .split-layout {
+        grid-template-columns: 1fr;
+    }
+    
+    .list-container {
+        max-height: 400px;
+    }
+}

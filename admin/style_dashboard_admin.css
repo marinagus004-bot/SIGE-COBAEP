@@ -1,6 +1,6 @@
 /* =========================================================
    COBAEP PLANTEL 27 · SIGE
-   Dashboard administrativo
+   Estilos base y Dashboard administrativo (Sin Sidebar)
    ========================================================= */
 
 :root {
@@ -34,6 +34,7 @@
     --radius-md: 18px;
     --radius-sm: 12px;
 
+    /* Variables que aún necesita el layout principal */
     --sidebar-width: 270px;
     --sidebar-collapsed-width: 85px;
 }
@@ -72,229 +73,7 @@ a {
 }
 
 /* =========================================================
-   SIDEBAR
-   ========================================================= */
-
-.sidebar {
-    position: fixed;
-    inset: 0 auto 0 0;
-    width: var(--sidebar-width);
-    z-index: 1000;
-    color: #dcece5;
-    background:
-        radial-gradient(circle at 15% 0%, rgba(53, 217, 138, .16), transparent 22rem),
-        linear-gradient(180deg, #063f2b 0%, #032b1e 100%);
-    box-shadow: 8px 0 40px rgba(3, 43, 30, .12);
-    transition: width 0.3s ease, transform 0.28s ease, box-shadow 0.3s ease;
-}
-
-.sidebar-inner {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    padding: 24px 18px 18px;
-}
-
-.brand {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 5px 0 20px 0;
-    margin-bottom: 15px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.09);
-    width: 100%;
-    box-sizing: border-box;
-    overflow: hidden;
-}
-
-.brand-mark {
-    width: 48px;
-    height: 48px;
-    display: grid;
-    place-items: center;
-    flex: 0 0 48px;
-    border-radius: 15px;
-    color: #ffffff;
-    font-size: 21px;
-    background: linear-gradient(145deg, #24d47d, #0c8950);
-    box-shadow: 0 10px 25px rgba(53,217,138,.18);
-}
-
-.brand-copy {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    flex: 1;
-    min-width: 0;
-}
-
-.brand-copy strong {
-    display: block;
-    color: #ffffff;
-    font-size: 1.15rem;
-    font-weight: 800;
-    letter-spacing: -.03em;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.brand-copy strong span {
-    color: var(--green-bright);
-}
-
-.brand-copy small {
-    display: block;
-    margin-top: 2px;
-    color: #9bc7b5;
-    font-size: 0.72rem;
-    font-weight: 600;
-    white-space: nowrap;
-}
-
-.navigation {
-    flex: 1;
-    overflow-y: auto;
-    padding: 10px 0;
-    scrollbar-width: none;
-}
-
-.navigation::-webkit-scrollbar {
-    display: none;
-}
-
-.nav-heading {
-    display: block;
-    padding: 18px 12px 8px;
-    color: #6ea28c;
-    font-size: .65rem;
-    font-weight: 800;
-    letter-spacing: .13em;
-    text-transform: uppercase;
-}
-
-.nav-item {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 13px;
-    min-height: 47px;
-    margin: 4px 0;
-    padding: 0 13px;
-    border: 1px solid transparent;
-    border-radius: 14px;
-    color: #a9c5b8;
-    text-decoration: none;
-    font-size: .86rem;
-    font-weight: 600;
-    transition: .22s ease;
-}
-
-.nav-item i {
-    width: 22px;
-    text-align: center;
-    color: #78a992;
-    font-size: .96rem;
-}
-
-.nav-item:hover {
-    color: #ffffff;
-    background: rgba(255,255,255,.065);
-    border-color: rgba(255,255,255,.07);
-    transform: translateX(2px);
-}
-
-.nav-item:hover i {
-    color: var(--green-bright);
-}
-
-.nav-item.active {
-    color: #ffffff;
-    background: linear-gradient(100deg, #1aa966, #0d8a50);
-    border-color: rgba(255,255,255,.08);
-    box-shadow: 0 12px 26px rgba(9, 163, 91, .24);
-}
-
-.nav-item.active i {
-    color: #ffffff;
-}
-
-.sidebar-bottom {
-    padding-top: 14px;
-}
-
-.institution {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 13px 10px;
-    margin-bottom: 12px;
-    border-top: 1px solid rgba(255,255,255,.08);
-}
-
-.institution-icon {
-    width: 34px;
-    height: 34px;
-    display: grid;
-    place-items: center;
-    flex: 0 0 34px;
-    border-radius: 10px;
-    color: #7ee7b0;
-    background: rgba(53,217,138,.10);
-}
-
-.institution strong,
-.institution span {
-    display: block;
-}
-
-.institution strong {
-    color: #dcece5;
-    font-size: .72rem;
-}
-
-.institution span {
-    margin-top: 2px;
-    color: #729a89;
-    font-size: .64rem;
-}
-
-.logout {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 9px;
-    min-height: 43px;
-    border: 1px solid rgba(255, 123, 123, .20);
-    border-radius: 13px;
-    color: #ffaaa7;
-    background: rgba(255, 91, 91, .07);
-    text-decoration: none;
-    font-size: .78rem;
-    font-weight: 700;
-    transition: .22s ease;
-}
-
-.logout:hover {
-    color: #ffffff;
-    background: #d9504d;
-    border-color: #d9504d;
-}
-
-/* =========================================================
-   OVERLAY / MOBILE
-   ========================================================= */
-
-.sidebar-overlay {
-    display: none;
-}
-
-.mobile-menu {
-    display: none;
-}
-
-/* =========================================================
-   MAIN
+   MAIN CONTENT
    ========================================================= */
 
 .main-content {
@@ -302,6 +81,11 @@ a {
     margin-left: var(--sidebar-width);
     padding: 30px 38px 22px;
     transition: margin-left 0.3s ease, padding 0.3s ease;
+}
+
+/* Botón de menú móvil oculto por defecto */
+.mobile-menu {
+    display: none;
 }
 
 /* =========================================================
@@ -440,7 +224,7 @@ a {
 }
 
 /* =========================================================
-   STATS
+   STATS (DASHBOARD PRINCIPAL)
    ========================================================= */
 
 .stats-grid {
@@ -874,71 +658,7 @@ a {
 }
 
 /* =========================================================
-    ESTRUCTURA DEL LOGO
-   =========================================================*/
-
-.brand-logo {
-    display: block;
-    width: 95px;       
-    height: 95px;      
-    flex: 0 0 95px;    
-    object-fit: contain;
-    border: none !important; 
-    background: transparent;
-    outline: none;
-}
-
-/* =========================================================
-   ESTADOS DE COLAPSO (ESCRITORIO)
-   ========================================================= */
-
-.collapse-toggle {
-    position: absolute;
-    right: -16px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 32px;
-    height: 32px;
-    background: var(--green-bright);
-    color: var(--green-950);
-    border: 4px solid var(--background);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 1001;
-    transition: transform 0.3s ease, background 0.2s ease;
-    box-shadow: 0 4px 10px rgba(9, 48, 32, 0.1);
-}
-
-.collapse-toggle:hover {
-    background: #4ade80;
-    transform: translateY(-50%) scale(1.1); 
-}
-
-body.sidebar-collapsed .sidebar { width: var(--sidebar-collapsed-width); }
-body.sidebar-collapsed .main-content { margin-left: var(--sidebar-collapsed-width); }
-body.sidebar-collapsed .brand-logo { width: 42px; height: 42px; flex: 0 0 42px; }
-
-body.sidebar-collapsed .brand-copy,
-body.sidebar-collapsed .nav-heading,
-body.sidebar-collapsed .nav-item span,
-body.sidebar-collapsed .institution div,
-body.sidebar-collapsed .logout span {
-    display: none;
-}
-
-body.sidebar-collapsed .brand { justify-content: center; padding-left: 0; padding-right: 0; }
-body.sidebar-collapsed .brand-mark { width: 42px; height: 42px; flex: 0 0 42px; }
-body.sidebar-collapsed .nav-item { justify-content: center; padding: 0; }
-body.sidebar-collapsed .nav-item i { font-size: 1.1rem; }
-body.sidebar-collapsed .institution { justify-content: center; padding-left: 0; padding-right: 0; }
-body.sidebar-collapsed .logout { justify-content: center; padding: 0; }
-body.sidebar-collapsed .collapse-toggle i { transform: rotate(180deg); }
-
-/* =========================================================
-   MEDIA QUERIES PARA RESPONSIVIDAD (TABLETS Y MÓVILES)
+   MEDIA QUERIES PARA RESPONSIVIDAD DEL LAYOUT PRINCIPAL
    ========================================================= */
 
 @media (max-width: 1150px) {
@@ -950,44 +670,15 @@ body.sidebar-collapsed .collapse-toggle i { transform: rotate(180deg); }
 
 /* PUNTO DE QUIEBRE PRINCIPAL PARA TABLETS/MÓVILES (992px) */
 @media (max-width: 992px) {
-
-    .sidebar {
-        width: min(290px, 85vw);
-        transform: translateX(-105%);
-        transition: transform .28s ease;
-        box-shadow: 18px 0 50px rgba(0,0,0,.18);
-    }
-
-    .sidebar.mobile-open {
-        transform: translateX(0);
-    }
-
-    .sidebar-overlay {
-        position: fixed;
-        inset: 0;
-        z-index: 999;
-        display: block;
-        pointer-events: none;
-        opacity: 0;
-        background: rgba(3, 43, 30, .38);
-        backdrop-filter: blur(3px);
-        transition: opacity .25s ease;
-    }
-
-    .sidebar-overlay.visible {
-        opacity: 1;
-        pointer-events: auto;
-    }
-
     .main-content {
-        margin-left: 0;
+        margin-left: 0 !important;
         padding: 20px 18px 18px;
     }
 
     .mobile-menu {
         width: 42px;
         height: 42px;
-        display: grid; /* Hace visible el botón hamburguesa */
+        display: grid;
         place-items: center;
         flex: 0 0 42px;
         border: 1px solid var(--line);
@@ -998,7 +689,6 @@ body.sidebar-collapsed .collapse-toggle i { transform: rotate(180deg); }
         cursor: pointer;
     }
 
-    /* Mejora en la barra superior: Evita que el perfil desaparezca */
     .topbar {
         flex-direction: column;
         align-items: flex-start;
@@ -1013,13 +703,13 @@ body.sidebar-collapsed .collapse-toggle i { transform: rotate(180deg); }
     .topbar-right {
         display: flex;
         width: 100%;
-        justify-content: space-between; /* Espacia el perfil y la fecha equitativamente */
-        border-top: 1px solid var(--line); /* Línea divisoria suave */
+        justify-content: space-between;
+        border-top: 1px solid var(--line);
         padding-top: 15px;
     }
 
     .profile-info {
-        display: block; /* Vuelve a mostrar la info en móviles para que se sepa quién es */
+        display: block; 
     }
 
     .stats-grid {
@@ -1053,31 +743,10 @@ body.sidebar-collapsed .collapse-toggle i { transform: rotate(180deg); }
     .quick-card { min-height: 0; }
     .dashboard-bottom { grid-template-columns: 1fr; }
     .overview-body { grid-template-columns: 1fr; }
-    
-    /* Ocultar botón de colapso en móviles y tablets */
-    .collapse-toggle { display: none !important; }
-    
-    /* Restaurar el comportamiento del menú al abrirlo en móvil, previniendo errores del modo colapso */
-    body.sidebar-collapsed .sidebar { width: min(290px, 85vw); }
-    body.sidebar-collapsed .main-content { margin-left: 0; }
-    
-    body.sidebar-collapsed .brand-copy,
-    body.sidebar-collapsed .nav-heading,
-    body.sidebar-collapsed .nav-item span,
-    body.sidebar-collapsed .institution div,
-    body.sidebar-collapsed .logout span {
-        display: block;
-    }
-    
-    body.sidebar-collapsed .brand { justify-content: flex-start; padding: 5px 8px 24px; }
-    body.sidebar-collapsed .nav-item { justify-content: flex-start; padding: 0 13px; }
-    body.sidebar-collapsed .institution { justify-content: flex-start; padding: 13px 10px; }
-    body.sidebar-collapsed .logout { justify-content: center; }
 }
 
 /* TELÉFONOS PEQUEÑOS */
 @media (max-width: 560px) {
-
     .main-content {
         padding: 16px 13px;
     }
@@ -1091,22 +760,21 @@ body.sidebar-collapsed .collapse-toggle i { transform: rotate(180deg); }
         line-height: 1.45;
     }
 
-    /* Ocultamos la fecha en pantallas muy estrechas para dar espacio al perfil */
     .date-pill {
         display: none; 
     }
+
     .topbar-right {
         justify-content: flex-end;
     }
 
-    /* Las tarjetas de estadísticas se apilan 1 debajo de la otra */
     .stats-grid {
         grid-template-columns: 1fr;
     }
 
     .stat-card {
         min-height: 91px;
-        flex-direction: row; /* Vuelven a horizontal en móviles pequeños */
+        flex-direction: row; 
         align-items: center;
         padding: 15px 16px;
     }
@@ -1154,5 +822,4 @@ body.sidebar-collapsed .collapse-toggle i { transform: rotate(180deg); }
         text-align: center;
         line-height: 1.6;
     }
-
 }

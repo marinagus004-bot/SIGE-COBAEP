@@ -1,7 +1,7 @@
 /* =========================================================
    SIGE · COBAEP
    APERTURA DE NUEVO GRUPO
-   REDISEÑO
+   REDISEÑO (SIN ESTILOS DEL SIDEBAR)
 ========================================================= */
 
 /* =========================================================
@@ -30,7 +30,6 @@
     background:
         radial-gradient(circle at 80% 0%, rgba(18, 164, 108, .08), transparent 28%),
         linear-gradient(135deg, #f8fbfa 0%, #f5faf8 55%, #eef8f4 100%);
-    overflow-x: hidden;
 }
 
 /* =========================================================
@@ -61,7 +60,7 @@
 }
 
 /* =========================================================
-   TOPBAR
+   TOPBAR ESPECÍFICO DEL GRUPO
 ========================================================= */
 .group-topbar {
     height: 74px;
@@ -76,9 +75,7 @@
     z-index: 5;
 }
 
-/* =========================================================
-   TOPBAR IZQUIERDA
-========================================================= */
+/* TOPBAR IZQUIERDA */
 .group-topbar-left {
     display: flex;
     align-items: center;
@@ -104,81 +101,11 @@
     font-weight: 700;
 }
 
-/* =========================================================
-   TOPBAR DERECHA
-========================================================= */
+/* TOPBAR DERECHA */
 .group-topbar-right {
     display: flex;
     align-items: center;
     gap: 12px;
-}
-
-/* FECHA */
-.date-pill {
-    height: 46px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 0 18px;
-    background: #ffffff;
-    border: 1px solid #edf1ef;
-    border-radius: 15px;
-    box-shadow: 0 5px 20px rgba(15, 46, 37, .045);
-    color: var(--group-text);
-    font-size: .78rem;
-    font-weight: 700;
-}
-
-.date-pill i {
-    color: var(--group-green);
-    font-size: .9rem;
-}
-
-/* PERFIL */
-.profile.pill-style {
-    min-height: 46px;
-    padding: 5px 13px 5px 6px;
-    border: 1px solid #edf1ef;
-    border-radius: 15px;
-    background: #ffffff;
-    box-shadow: 0 5px 20px rgba(15, 46, 37, .045);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.profile-avatar {
-    width: 35px;
-    height: 35px;
-    display: grid;
-    place-items: center;
-    border-radius: 11px;
-    background: linear-gradient(145deg, #0caf70, #087e55);
-    color: white;
-    font-size: .78rem;
-}
-
-.profile-info {
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-}
-
-.profile-info strong {
-    color: var(--group-ink);
-    font-size: .75rem;
-    font-weight: 800;
-}
-
-.profile-info span {
-    color: #8a9a94;
-    font-size: .65rem;
-}
-
-.profile-drop-icon {
-    margin-left: 5px;
-    color: #83948d;
-    font-size: .62rem;
 }
 
 /* =========================================================
@@ -676,35 +603,6 @@
     box-shadow: 0 5px 15px rgba(7,155,99,.08);
 }
 
-/* =========================================================
-   MOBILE MENU (BOTÓN)
-========================================================= */
-.mobile-menu {
-    width: 38px;
-    height: 38px;
-    display: none;
-    place-items: center;
-    border: 1px solid #e2ebe7;
-    border-radius: 10px;
-    background: #ffffff;
-    color: var(--group-green-dark);
-    cursor: pointer;
-}
-
-/* =========================================================
-   SIDEBAR COLAPSADA (ESCRITORIO)
-========================================================= */
-body.sidebar-collapsed .main-content {
-    margin-left: 82px;
-}
-
-body.sidebar-collapsed .group-topbar {
-    padding-left: 32px;
-}
-
-.main-content {
-    transition: margin-left .3s ease;
-}
 
 /* =========================================================
    MEDIA QUERIES (RESPONSIVIDAD Y ADAPTABILIDAD)
@@ -722,18 +620,12 @@ body.sidebar-collapsed .group-topbar {
     }
 }
 
-/* PUNTO DE QUIEBRE PRINCIPAL - COINCIDE CON EL SIDEBAR (992px) */
+/* PUNTO DE QUIEBRE PRINCIPAL (992px) */
 @media (max-width: 992px) {
-    /* Topbar */
-    .mobile-menu { display: grid; }
+    /* Topbar específica de grupo */
     .breadcrumb { display: none; }
     .group-topbar { height: 68px; padding: 0 20px; }
     .group-topbar-right { gap: 7px; }
-    .date-pill { padding: 0 11px; }
-
-    /* Perfil */
-    .profile-info, .profile-drop-icon { display: none; }
-    .profile.pill-style { padding: 5px; }
 
     /* Decoraciones visuales omitidas */
     .heading-decoration { display: none; }
@@ -747,11 +639,6 @@ body.sidebar-collapsed .group-topbar {
     /* Ocultamos la vista previa en móviles/tablets para no alargar la pantalla innecesariamente */
     .setup-preview { display: none; }
     .setup-fields { max-width: 100%; }
-
-    /* Corrección de márgenes cuando el sidebar interactúa como menú flotante */
-    .main-content { margin-left: 0 !important; }
-    body.sidebar-collapsed .main-content { margin-left: 0 !important; }
-    body.sidebar-collapsed .group-topbar { padding-left: 20px; }
 }
 
 /* TABLETS VERTICALES Y TELÉFONOS GRANDES (768px) */
@@ -787,7 +674,7 @@ body.sidebar-collapsed .group-topbar {
     .btn-cancel-text { 
         width: 100%; 
         justify-content: center; 
-        border: 1px solid #e1e8e5; /* Agregamos un borde sutil al cancelar para que parezca botón en móvil */
+        border: 1px solid #e1e8e5;
         padding: 12px;
     }
 }
@@ -795,11 +682,6 @@ body.sidebar-collapsed .group-topbar {
 /* TELÉFONOS PEQUEÑOS (480px) */
 @media (max-width: 480px) {
     .group-topbar { padding: 0 15px; }
-    
-    /* Ocultar fecha en teléfonos pequeños para no saturar */
-    .date-pill { display: none; }
-    
-    .profile-avatar { width: 31px; height: 31px; }
     .group-content { padding: 20px 12px 30px; }
     .heading-copy h1 { font-size: 1.7rem; }
     .setup-header { align-items: flex-start; }

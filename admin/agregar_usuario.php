@@ -2,13 +2,11 @@
 session_start();
 require_once '../config/database.php';
 
-// Verificación de sesión
 if (!isset($_SESSION['id_usuario']) || $_SESSION['rol'] !== 'administrativo') {
     header("Location: ../login.php");
     exit();
 }
 
-// Cargar grupos para el select
 try {
     $stmtG = $pdo->query("SELECT id_grupo, semestre, nombre_grupo, turno FROM GRUPOS ORDER BY semestre, nombre_grupo ASC");
     $grupos = $stmtG->fetchAll();
@@ -16,9 +14,7 @@ try {
     die("Error al cargar los grupos: " . $e->getMessage());
 }
 
-$nombre_usuario = isset($_SESSION['nombre'])
-    ? htmlspecialchars($_SESSION['nombre'], ENT_QUOTES, 'UTF-8')
-    : 'Administrador';
+$nombre_usuario = isset($_SESSION['nombre']) ? htmlspecialchars($_SESSION['nombre'], ENT_QUOTES, 'UTF-8') : 'Administrador';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -27,100 +23,29 @@ $nombre_usuario = isset($_SESSION['nombre'])
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#063f2b">
     <title>Registrar Usuario · COBAEP Plantel 27</title>
-    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     
     <link href="style_dashboard_admin.css?v=<?php echo time(); ?>" rel="stylesheet">
+    <link href="style_sidebar.css?v=<?php echo time(); ?>" rel="stylesheet">
     <link href="style_agregar_usuario.css?v=<?php echo time(); ?>" rel="stylesheet">
 </head>
 <body>
 
-    <!-- ===== BARRA LATERAL ===== -->
-    <aside class="sidebar" id="sidebar">
-        <button id="collapseToggle" class="collapse-toggle" aria-label="Colapsar menú">
-            <i class="fas fa-chevron-left"></i>
-        </button>
+    <!-- BARRA LATERAL CENTRALIZADA -->
+    <?php include 'sidebar.php'; ?>
 
-        <div class="sidebar-inner">
-            <div class="brand">
-                <img src="../img/LogoCobaep.png" alt="Logo COBAEP" class="brand-logo">
-                <div class="brand-copy">
-                    <strong>SIGE<span>-Cobaep</span></strong>
-                    <small>Plantel 27</small>
-                </div>
-            </div>
-
-            <nav class="navigation" aria-label="Navegación principal">
-                <span class="nav-heading">Menú principal</span>
-                <a href="dashboard_admin.php" class="nav-item">
-                    <i class="fas fa-house"></i>
-                    <span>Panel de Control</span>
-                </a>
-
-                <span class="nav-heading">Académico</span>
-                <a href="gestion_grupos.php" class="nav-item">
-                    <i class="fas fa-users-rectangle"></i>
-                    <span>Gestión de Grupos</span>
-                </a>
-                <a href="gestion_horarios.php" class="nav-item">
-                    <i class="fas fa-calendar-days"></i>
-                    <span>Gestión de Horarios</span>
-                </a>
-
-                <span class="nav-heading">Personal</span>
-                <a href="gestion_usuarios.php" class="nav-item">
-                    <i class="fas fa-users"></i>
-                    <span>Directorio de Personal</span>
-                </a>
-                <a href="agregar_usuario.php" class="nav-item active">
-                    <i class="fas fa-user-plus"></i>
-                    <span>Nuevo Registro</span>
-                </a>
-
-                <span class="nav-heading">Información</span>
-                <a href="reportes.php" class="nav-item">
-                    <i class="fas fa-chart-column"></i>
-                    <span>Reportes y Listas</span>
-                </a>
-            </nav>
-
-            <div class="sidebar-bottom">
-                <div class="institution">
-                    <div class="institution-icon">
-                        <i class="fas fa-building-columns"></i>
-                    </div>
-                    <div>
-                        <strong>COBAEP Plantel 27</strong>
-                        <span>Zaragoza, Puebla</span>
-                    </div>
-                </div>
-                <a href="../logout.php" class="logout">
-                    <i class="fas fa-arrow-right-from-bracket"></i>
-                    <span>Cerrar Sesión</span>
-                </a>
-            </div>
-        </div>
-    </aside>
-
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-    <!-- ===== CONTENIDO PRINCIPAL ===== -->
+    <!-- CONTENIDO PRINCIPAL -->
     <main class="main-content layout-formulario">
-        
-        <!-- Botón menú móvil -->
         <button class="mobile-menu" id="mobileMenu" type="button" aria-label="Abrir menú" style="margin-bottom: 20px;">
             <i class="fas fa-bars"></i>
         </button>
 
-        <!-- Encabezado de la página (Header Pills) -->
         <div class="page-header-pills">
             <div class="header-left-title">
-                <div class="icon-bg-light">
-                    <i class="fas fa-user-plus"></i>
-                </div>
+                <div class="icon-bg-light"><i class="fas fa-user-plus"></i></div>
                 <div>
                     <h1>Registrar Nuevo Usuario</h1>
                     <p>Ingresa los datos del estudiante, docente, prefectos o administrativo</p>
@@ -129,20 +54,17 @@ $nombre_usuario = isset($_SESSION['nombre'])
             
             <div class="header-right-pills">
                 <div class="pill">
-                    <i class="far fa-calendar"></i>
-                    <span id="fechaTexto"><?php echo date('d/m/Y, h:i a'); ?></span>
+                    <i class="far fa-calendar"></i><span id="fechaTexto"><?php echo date('d/m/Y, h:i a'); ?></span>
                 </div>
                 <div class="pill">
                     <i class="fas fa-user"></i>
                     <div class="user-pill-info">
-                        <strong><?php echo $nombre_usuario; ?></strong>
-                        <span>Administrador</span>
+                        <strong><?php echo $nombre_usuario; ?></strong><span>Administrador</span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Alertas -->
         <?php if (isset($_GET['exito'])): ?>
             <div class="alert alert-success">
                 <i class="fas fa-check-circle"></i> ¡Usuario guardado y asignado correctamente!
@@ -150,16 +72,13 @@ $nombre_usuario = isset($_SESSION['nombre'])
         <?php endif; ?>
         <?php if (isset($_GET['error'])): ?>
             <div class="alert alert-error">
-                <i class="fas fa-exclamation-circle"></i> 
-                <?php echo htmlspecialchars($_GET['error']); ?>
+                <i class="fas fa-exclamation-circle"></i> <?php echo htmlspecialchars($_GET['error']); ?>
             </div>
         <?php endif; ?>
 
-        <!-- Contenedor del Formulario -->
         <div class="form-wrapper">
             <form action="../procesos/guardar_usuario_v2.php" method="POST" id="formRegistro">
                 
-                <!-- Tipo de Usuario (Borde Verde Especial) -->
                 <div class="form-group highlight-select">
                     <label for="tipo_usuario"><i class="fas fa-user-tag"></i> Tipo de Usuario</label>
                     <select name="tipo_usuario" id="tipo_usuario" required onchange="toggleCampos()">
@@ -170,7 +89,6 @@ $nombre_usuario = isset($_SESSION['nombre'])
                     </select>
                 </div>
 
-                <!-- Datos Personales -->
                 <div class="form-group">
                     <label for="nombre"><i class="fas fa-user"></i> Nombre(s)</label>
                     <input type="text" name="nombre" id="nombre" placeholder="Ej. María" required>
@@ -250,7 +168,7 @@ $nombre_usuario = isset($_SESSION['nombre'])
                     </div>
                 </div>
 
-                <!-- SECCIÓN STAFF (Docentes, Prefectos, Administrativos) -->
+                <!-- SECCIÓN STAFF -->
                 <div id="campos_staff" style="display: none; margin-top: 15px;">
                     <div class="form-group">
                         <label for="usuario"><i class="far fa-user-circle"></i> Nombre de Usuario (Login)</label>
@@ -259,14 +177,13 @@ $nombre_usuario = isset($_SESSION['nombre'])
                     </div>
                 </div>
 
-                <!-- CONTRASEÑA (Para todos) -->
+                <!-- CONTRASEÑA -->
                 <div class="form-group" style="margin-top: 15px;">
                     <label for="password"><i class="fas fa-lock"></i> Contraseña Provisional</label>
                     <input type="password" name="password" id="password" placeholder="Mínimo 6 caracteres" required>
                     <div class="help-text">El usuario deberá cambiarla en su primer acceso.</div>
                 </div>
 
-                <!-- Botones de Acción -->
                 <button type="submit" class="btn-submit">
                     <i class="fas fa-save"></i> Guardar Usuario
                 </button>
@@ -277,7 +194,6 @@ $nombre_usuario = isset($_SESSION['nombre'])
                 </div>
             </form>
         </div>
-
     </main>
 
     <!-- SCRIPTS -->
@@ -319,13 +235,13 @@ $nombre_usuario = isset($_SESSION['nombre'])
 
             function abrirMenu() {
                 sidebar.classList.add('mobile-open');
-                overlay.classList.add('visible');
+                if(overlay) overlay.classList.add('visible');
                 body.classList.add('menu-open');
             }
 
             function cerrarMenu() {
                 sidebar.classList.remove('mobile-open');
-                overlay.classList.remove('visible');
+                if(overlay) overlay.classList.remove('visible');
                 body.classList.remove('menu-open');
             }
 

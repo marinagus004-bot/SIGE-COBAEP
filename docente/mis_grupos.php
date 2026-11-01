@@ -17,17 +17,17 @@ $iniciales = strtoupper(substr($partes_nombre[0], 0, 1) . (isset($partes_nombre[
 $mis_grupos = [];
 
 try {
-    // SOLO TRAEMOS LOS GRUPOS PUROS ASIGNADOS AL DOCENTE
     $stmtGrupos = $pdo->prepare("
         SELECT 
             g.id_grupo,
             g.nombre_grupo,
             g.semestre,
             g.turno,
-            (SELECT COUNT(id_alumno) FROM grupo_alumno WHERE id_grupo = g.id_grupo AND fecha_baja IS NULL) AS total_alumnos
-        FROM horarios_maestro hm
-        INNER JOIN grupos g ON hm.id_grupo = g.id_grupo
-        WHERE hm.id_maestro = ?
+            (SELECT COUNT(id_alumno) FROM GRUPO_ALUMNO ga WHERE ga.id_grupo = g.id_grupo AND ga.fecha_baja IS NULL) AS total_alumnos
+        FROM GRUPO_MAESTRO gm
+        INNER JOIN GRUPOS g ON gm.id_grupo = g.id_grupo
+        WHERE gm.id_maestro = ?
+        ORDER BY g.semestre, g.nombre_grupo ASC
     ");
     $stmtGrupos->execute([$id_docente]);
     $mis_grupos = $stmtGrupos->fetchAll(PDO::FETCH_ASSOC);

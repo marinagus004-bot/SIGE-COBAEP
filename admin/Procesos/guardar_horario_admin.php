@@ -1,9 +1,9 @@
 <?php
 session_start();
-require_once '../config/database.php';
+require_once '../../config/database.php';
 
 if (!isset($_SESSION['id_usuario']) || $_SESSION['rol'] !== 'administrativo') {
-    header("Location: ../login.php");
+    header("Location: ../../login.php");
     exit();
 }
 
@@ -12,7 +12,8 @@ if (isset($_GET['eliminar'])) {
     $id_eliminar = intval($_GET['eliminar']);
     $stmt = $pdo->prepare("DELETE FROM HORARIOS_MAESTRO WHERE id_horario = ?");
     $stmt->execute([$id_eliminar]);
-    header("Location: ../admin/gestion_horarios.php?msg=eliminado");
+    // Subimos un nivel para volver a admin/gestion_horarios.php
+    header("Location: ../gestion_horarios.php?msg=eliminado");
     exit();
 }
 
@@ -29,12 +30,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Si subieron archivo PDF
     if (isset($_FILES['archivo_pdf']) && $_FILES['archivo_pdf']['error'] === UPLOAD_ERR_OK) {
-        $dir = '../uploads/horarios/';
+        // Subimos 2 niveles para guardar en la carpeta uploads de la raíz
+        $dir = '../../uploads/horarios/';
         if (!is_dir($dir)) {
             mkdir($dir, 0777, true);
         }
         $nombre_original = basename($_FILES['archivo_pdf']['name']);
         $nuevo_nombre = 'horario_docente_' . $id_maestro . '_' . time() . '.pdf';
+        
         if (move_uploaded_file($_FILES['archivo_pdf']['tmp_name'], $dir . $nuevo_nombre)) {
             $nombre_archivo = $nombre_original;
             $ruta_pdf = 'uploads/horarios/' . $nuevo_nombre;
@@ -54,13 +57,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $sql = "UPDATE HORARIOS_MAESTRO SET id_maestro=?, id_grupo=?, ciclo=?, anio=? WHERE id_horario=?";
             $pdo->prepare($sql)->execute([$id_maestro, $id_grupo, $ciclo, $anio, $id_horario]);
         }
-        header("Location: ../admin/gestion_horarios.php?msg=actualizado");
+        header("Location: ../gestion_horarios.php?msg=actualizado");
         exit();
     } else {
         // Insertar nuevo
         $sql = "INSERT INTO HORARIOS_MAESTRO (id_maestro, id_grupo, nombre_archivo, ruta_pdf, ciclo, anio) VALUES (?, ?, ?, ?, ?, ?)";
         $pdo->prepare($sql)->execute([$id_maestro, $id_grupo, $nombre_archivo, $ruta_pdf, $ciclo, $anio]);
-        header("Location: ../admin/gestion_horarios.php?msg=creado");
+        header("Location: ../gestion_horarios.php?msg=creado");
         exit();
     }
 }
+?>
