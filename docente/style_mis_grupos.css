@@ -1,0 +1,224 @@
+/* =========================================================
+   SIGE COBAEP 27 · ESTILOS PARA "MIS GRUPOS" DOCENTE
+   ========================================================= */
+
+/* ESTADOS VACÍOS */
+.empty-state-box {
+    background: #ffffff;
+    border: 2px dashed var(--line);
+    border-radius: 20px;
+    padding: 50px 20px;
+    text-align: center;
+    margin-bottom: 30px;
+}
+.empty-state-box .icon-circle {
+    width: 70px;
+    height: 70px;
+    background: var(--blue-soft);
+    color: var(--blue);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin: 0 auto 15px;
+}
+.empty-state-box h3 { color: var(--ink); font-size: 1.2rem; margin-bottom: 8px; }
+.empty-state-box p { color: var(--muted); font-size: 0.9rem; max-width: 400px; margin: 0 auto; }
+
+/* =========================================================
+   NUEVO GRID DE TARJETAS DE GRUPOS (MÁS MODERNO)
+   ========================================================= */
+.grupos-container { margin-bottom: 40px; }
+
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 25px;
+}
+
+.grupo-card-modern {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Barra de color animada en la parte superior */
+.card-accent {
+    height: 6px;
+    width: 100%;
+    background: linear-gradient(90deg, var(--green, #16a05d), #075638);
+    opacity: 0.85;
+    transition: all 0.3s ease;
+}
+
+.grupo-card-modern:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border-color: #cbd5e1;
+}
+
+.grupo-card-modern:hover .card-accent {
+    height: 8px;
+    opacity: 1;
+}
+
+/* Estado cuando el grupo está seleccionado */
+.grupo-card-modern.selected {
+    border: 2px solid var(--green, #16a05d);
+    background: #f0fdf4; /* Un verde ultra claro de fondo */
+    box-shadow: 0 10px 15px -3px rgba(22, 160, 93, 0.15);
+}
+.grupo-card-modern.selected .card-accent { background: var(--green, #16a05d); }
+
+/* Contenido interno */
+.card-content-g {
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Badges (Etiquetas de Semestre y Turno) */
+.card-top-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.badge-semestre {
+    background: #e0f2fe; /* Azul pastel */
+    color: #0284c7; /* Azul fuerte */
+    padding: 8px 14px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid #bae6fd;
+}
+
+.badge-turno {
+    background: #f1f5f9;
+    color: #475569;
+    padding: 8px 14px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Título Principal */
+.grupo-title {
+    font-size: 1.7rem;
+    color: #0f172a;
+    margin: 5px 0 0 0;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+}
+
+/* Footer de la tarjeta */
+.card-footer-g {
+    margin-top: 10px;
+    padding-top: 20px;
+    border-top: 1px dashed #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--green, #16a05d);
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+/* Botoncito con flecha animada */
+.btn-circle-arrow {
+    width: 35px;
+    height: 35px;
+    background: #f1f5f9;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    transition: all 0.3s ease;
+}
+
+.grupo-card-modern:hover .btn-circle-arrow,
+.grupo-card-modern.selected .btn-circle-arrow {
+    background: var(--green, #16a05d);
+    color: #ffffff;
+    transform: translateX(4px); /* Se mueve un poco a la derecha */
+}
+
+
+/* =========================================================
+   TABLA DE ALUMNOS (SE MANTIENE INTACTA)
+   ========================================================= */
+.alumnos-section { animation: fadeIn 0.4s ease-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.table-card {
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    padding: 25px;
+    border-bottom: 1px solid var(--line);
+}
+
+.header-titles h2 { margin: 0 0 5px 0; color: var(--ink); font-size: 1.3rem; }
+.badge-grupo { background: var(--blue-soft); color: var(--blue); padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; display: inline-block;}
+
+.search-box { position: relative; width: 300px; max-width: 100%; }
+.search-box i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #9ca3af; }
+.search-box input { width: 100%; padding: 12px 15px 12px 40px; border: 1px solid var(--line); border-radius: 12px; font-size: 0.9rem; outline: none; transition: border-color 0.2s; background: #f9fafb; box-sizing: border-box;}
+.search-box input:focus { border-color: var(--green); background: #ffffff; }
+
+.table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.modern-table { width: 100%; border-collapse: collapse; min-width: 700px; }
+.modern-table th { background: #f9fafb; color: var(--muted); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; padding: 16px 25px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap;}
+.modern-table td { padding: 16px 25px; border-bottom: 1px solid var(--line); color: var(--ink); font-size: 0.9rem; vertical-align: middle; }
+.text-center { text-align: center; }
+.text-muted { color: var(--muted); }
+.font-medium { font-weight: 600; }
+.empty-table { padding: 40px !important; color: #9ca3af; font-style: italic; }
+
+.user-cell { display: flex; align-items: center; gap: 15px; }
+.user-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+.alumno-avatar { background: #fef3c7; color: #d97706; }
+.user-info strong { display: block; color: var(--ink); font-size: 0.95rem; white-space: nowrap;}
+.user-info span { display: block; color: var(--muted); font-size: 0.85rem; white-space: nowrap;}
+
+.badge-status { padding: 6px 14px; border-radius: 30px; font-size: 0.75rem; font-weight: 700; white-space: nowrap; display: inline-block;}
+.badge-status.active { background: var(--green-soft); color: var(--green-700); }
+.badge-status.inactive { background: #fef2f2; color: #ef4444; }
+
+.btn-action { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; text-decoration: none; border: none; cursor: pointer; transition: all 0.2s; white-space: nowrap;}
+.btn-action.view { background: #eff6ff; color: #2563eb; }
+.btn-action.view:hover { background: #dbeafe; color: #1d4ed8; }
+
+/* MEDIA QUERIES */
+@media (max-width: 768px) {
+    .table-header { flex-direction: column; align-items: stretch; padding: 20px; }
+    .search-box { width: 100%; }
+    .cards-grid { grid-template-columns: 1fr; }
+}
