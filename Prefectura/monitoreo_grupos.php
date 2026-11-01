@@ -160,8 +160,10 @@ try {
         </div>
     </aside>
 
+
     <main class="main-content">
         <header class="topbar">
+         <button class="mobile-menu" id="mobileMenu" type="button" aria-label="Abrir menú"><i class="fas fa-bars"></i></button>
             <div class="topbar-left">
                 <div>
                     <span class="eyebrow">OPERACIONES DE PREFECTURA</span>

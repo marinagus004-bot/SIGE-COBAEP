@@ -24,7 +24,7 @@ $matricula = 'Sin Matrícula';
 
 try {
     // 1. Obtener datos del alumno
-    $stmt_alumno = $pdo->prepare("SELECT nombre, apellido_paterno, matricula FROM ALUMNOS WHERE id_alumno = ?");
+    $stmt_alumno = $pdo->prepare("SELECT nombre, apellido_paterno, matricula FROM alumnos WHERE id_alumno = ?");
     $stmt_alumno->execute([$id_alumno]);
     $datos_alumno = $stmt_alumno->fetch(PDO::FETCH_ASSOC);
 
@@ -36,7 +36,7 @@ try {
         $matricula = htmlspecialchars($datos_alumno['matricula']);
     }
 
-    // 2. Verificar acceso (Solo entra si el maestro tiene el switch prendido: acceso = 1)
+    // 2. Verificar acceso a la clase
     $stmt_clase = $pdo->prepare("
         SELECT c.id_clase, c.enlace_clase_virtual, m.nombre_materia, m.imagen_portada, 
                prof.nombre AS maestro_nombre, prof.apellido_paterno AS maestro_apellido 
@@ -54,29 +54,48 @@ try {
         exit();
     }
 
-    // 3. Obtener Actividades
-    $stmt_act = $pdo->prepare("SELECT * FROM actividades_clase WHERE id_clase = ? ORDER BY fecha_publicacion DESC");
-    $stmt_act->execute([$id_clase]);
-    $actividades = $stmt_act->fetchAll(PDO::FETCH_ASSOC);
-
-    // 4. Obtener Entregas NUEVA TABLA (entregas_actividad)
-    $stmt_entregas = $pdo->prepare("SELECT id_actividad, fecha_entrega, estatus_entrega FROM entregas_actividad WHERE id_alumno = ?");
-    $stmt_entregas->execute([$id_alumno]);
+    // 3. Obtener Actividades y Permisos Individuales
+    $stmt_act = $pdo->prepare("
+        SELECT ac.*, 
+               COALESCE(va.visible, 1) as permiso_individual, 
+               va.fecha_limite_excepcion
+        FROM actividades_clase ac
+        LEFT JOIN visibilidad_actividad va ON ac.id_actividad = va.id_actividad AND va.id_alumno = ?
+        WHERE ac.id_clase = ? AND ac.visible = 1 AND (ac.fecha_apertura IS NULL OR ac.fecha_apertura <= NOW())
+        ORDER BY ac.fecha_publicacion DESC
+    ");
+    $stmt_act->execute([$id_alumno, $id_clase]);
     
+    $actividades = [];
+    while ($row = $stmt_act->fetch(PDO::FETCH_ASSOC)) {
+        if ($row['permiso_individual'] == 1) {
+            $actividades[] = $row;
+        }
+    }
+
+    // 4. Obtener Entregas
+    $stmt_entregas = $pdo->prepare("SELECT id_actividad, fecha_entrega, estatus_entrega, archivo_ruta, retroalimentacion FROM entregas_actividad WHERE id_alumno = ?");
+    $stmt_entregas->execute([$id_alumno]);
     $mis_entregas = [];
     while($row = $stmt_entregas->fetch(PDO::FETCH_ASSOC)) {
         $mis_entregas[$row['id_actividad']] = $row;
     }
 
-    // Simulación Asistencia
-    $asistencias_clase = 12;
-    $faltas_clase = 2;
-
 } catch (PDOException $e) {
-    error_log("Error cargando Aula Virtual: " . $e->getMessage());
-    header("Location: actividades_escolares.php?error=Error de conexión con el aula.");
+    header("Location: actividades_escolares.php?error=Error BD: " . urlencode($e->getMessage()));
     exit();
 }
+
+$asistencias_clase = 0; $faltas_clase = 0;
+try {
+    $stmt_asist = $pdo->prepare("SELECT estatus, COUNT(*) as total FROM asistencias_clases WHERE id_alumno = ? AND id_clase = ? GROUP BY estatus");
+    $stmt_asist->execute([$id_alumno, $id_clase]);
+    while($row = $stmt_asist->fetch(PDO::FETCH_ASSOC)) {
+        $estatus = strtolower(trim($row['estatus']));
+        if ($estatus == 'presente' || $estatus == 'asistencia' || $estatus == 'retardo') $asistencias_clase += $row['total'];
+        else if ($estatus == 'falta' || $estatus == 'ausente') $faltas_clase += $row['total'];
+    }
+} catch (PDOException $e) {}
 
 $bg_image = "linear-gradient(145deg, #0f172a, #063f2b)";
 if (!empty($clase['imagen_portada'])) {
@@ -93,7 +112,6 @@ $fecha_actual = new DateTime();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#063f2b">
     <title><?php echo htmlspecialchars($clase['nombre_materia']); ?> · Aula Virtual</title>
-
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="style_dashboard_estud.css?v=<?php echo time(); ?>">
@@ -155,16 +173,18 @@ $fecha_actual = new DateTime();
         .tag-orange { background: #ffedd5; color: #9a3412; }
         .tag-green { background: #dcfce7; color: #166534; }
         
-        .act-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center;}
         .btn-action { padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; border: 1px solid transparent; cursor: pointer;}
         .btn-outline { background: white; border-color: #cbd5e1; color: #0f172a; }
         .btn-outline:hover { background: #f8fafc; border-color: #94a3b8; }
         .btn-primary { background: #059669; color: white; }
         .btn-primary:hover { background: #047857; }
 
-        .status-entregado { font-weight: 800; font-size: 0.85rem; display: flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 8px;}
+        .status-entregado { font-weight: 800; font-size: 0.85rem; display: flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 8px; width: fit-content;}
         .status-verde { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0;}
         .status-rojo { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca;}
+
+        .box-entrega { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; margin-top: 15px; }
+        .box-entrega h5 { margin: 0 0 10px 0; font-size: 0.9rem; color: #0f172a; display: flex; align-items: center; gap: 6px;}
 
         .col-side { display: flex; flex-direction: column; gap: 1.5rem; }
         .side-widget { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
@@ -184,10 +204,7 @@ $fecha_actual = new DateTime();
         .att-green strong { color: #10b981; }
         .att-red strong { color: #ef4444; }
 
-        @media (max-width: 900px) {
-            .layout-aula { grid-template-columns: 1fr; }
-            .col-side { order: -1; } 
-        }
+        @media (max-width: 900px) { .layout-aula { grid-template-columns: 1fr; } .col-side { order: -1; } }
         @media (max-width: 768px) {
             body { overflow: auto; }
             .main-content { margin-left: 0 !important; width: 100% !important; padding: 1rem; height: auto; }
@@ -220,7 +237,6 @@ $fecha_actual = new DateTime();
             <nav class="navigation" aria-label="Navegación principal">
                 <span class="nav-heading">Menú principal</span>
                 <a href="dashboard_estud.php" class="nav-item"><i class="fas fa-home"></i> <span>Inicio</span></a>
-                <!-- Enlace de 'Mi Perfil' removido de aquí como sugeriste -->
                 <a href="mis_asistencias.php" class="nav-item"><i class="far fa-calendar-check"></i> <span>Mis Asistencias</span></a>
                 <a href="horario_clases.php" class="nav-item"><i class="far fa-calendar-alt"></i> <span>Horario de Clases</span></a>
 
@@ -309,7 +325,6 @@ $fecha_actual = new DateTime();
                             <p>El profesor aún no ha publicado actividades en esta materia.</p>
                         </div>
                     <?php else: ?>
-                        
                         <?php foreach($actividades as $act): 
                             $es_tarea = ($act['permite_entregas'] == 1);
                             $icon_class = $es_tarea ? 'bg-tarea' : 'bg-material';
@@ -318,14 +333,16 @@ $fecha_actual = new DateTime();
                             $entregado = isset($mis_entregas[$act['id_actividad']]);
                             $info_entrega = $entregado ? $mis_entregas[$act['id_actividad']] : null;
                             
-                            // Lógica de fechas
-                            $tiene_limite = !empty($act['fecha_limite']);
+                            $fecha_a_usar = !empty($act['fecha_limite_excepcion']) ? $act['fecha_limite_excepcion'] : $act['fecha_limite'];
+                            $tiene_limite = !empty($fecha_a_usar);
                             $vencida = false;
+                            
                             if($tiene_limite) {
-                                $fecha_limite_dt = new DateTime($act['fecha_limite']);
+                                $fecha_limite_dt = new DateTime($fecha_a_usar);
                                 $vencida = ($fecha_actual > $fecha_limite_dt);
                             }
                             $acepta_retardo = ($act['acepta_retardo'] == 1);
+                            $bloqueo_fecha = ($vencida && !$acepta_retardo);
                         ?>
                             <div class="actividad-card">
                                 <div class="act-icon <?php echo $icon_class; ?>"><i class="fas <?php echo $icon_fa; ?>"></i></div>
@@ -336,163 +353,122 @@ $fecha_actual = new DateTime();
                                     
                                     <div class="act-meta">
                                         <span class="meta-tag"><i class="far fa-clock"></i> Publicado: <?php echo date('d M', strtotime($act['fecha_publicacion'])); ?></span>
-                                        
                                         <?php if($tiene_limite): ?>
-                                            <?php if($vencida && !$entregado): ?>
-                                                <span class="meta-tag tag-red"><i class="fas fa-exclamation-circle"></i> Vencida: <?php echo date('d M Y, h:i a', strtotime($act['fecha_limite'])); ?></span>
+                                            <?php if(!empty($act['fecha_limite_excepcion'])): ?>
+                                                 <span class="meta-tag tag-green"><i class="fas fa-calendar-check"></i> Extensión: <?php echo date('d M Y, h:i a', strtotime($fecha_a_usar)); ?></span>
+                                            <?php elseif($vencida && !$entregado): ?>
+                                                <span class="meta-tag tag-red"><i class="fas fa-exclamation-circle"></i> Vencida: <?php echo date('d M Y, h:i a', strtotime($fecha_a_usar)); ?></span>
                                             <?php else: ?>
-                                                <span class="meta-tag tag-orange"><i class="far fa-calendar-times"></i> Límite: <?php echo date('d M Y, h:i a', strtotime($act['fecha_limite'])); ?></span>
+                                                <span class="meta-tag tag-orange"><i class="far fa-calendar-times"></i> Límite: <?php echo date('d M Y, h:i a', strtotime($fecha_a_usar)); ?></span>
                                             <?php endif; ?>
                                         <?php endif; ?>
                                     </div>
 
-                                    <div class="act-actions">
-                                        <?php if(!empty($act['archivo_ruta'])): ?>
-                                            <a href="../<?php echo htmlspecialchars($act['archivo_ruta']); ?>" target="_blank" class="btn-action btn-outline">
-                                                <i class="fas fa-download"></i> Material de Apoyo
+                                    <?php if(!empty($act['archivo_ruta'])): 
+                                        $archivo_bd = basename($act['archivo_ruta']);
+                                        $nombre_material_limpio = preg_replace('/^mat_.*?_/', '', $archivo_bd);
+                                    ?>
+                                        <div style="margin-bottom: 15px;">
+                                            <a href="../uploads/materiales_clase/<?php echo htmlspecialchars($archivo_bd); ?>" download="<?php echo htmlspecialchars($nombre_material_limpio); ?>" target="_blank" class="btn-action btn-outline">
+                                                <i class="fas fa-download"></i> <?php echo htmlspecialchars($nombre_material_limpio); ?>
                                             </a>
-                                        <?php endif; ?>
-
-                                        <?php if($es_tarea): ?>
-                                            <?php if($entregado): ?>
-                                                <?php if($info_entrega['estatus_entrega'] === 'Con Retardo'): ?>
-                                                    <span class="status-entregado status-rojo"><i class="fas fa-clock"></i> Entregada (Con Retardo)</span>
-                                                <?php else: ?>
-                                                    <span class="status-entregado status-verde"><i class="fas fa-check-double"></i> Entregada a Tiempo</span>
-                                                <?php endif; ?>
-                                            <?php else: ?>
-                                                
-                                                <?php if(!$vencida || ($vencida && $acepta_retardo)): ?>
-                                                    <button class="btn-action btn-primary" onclick="abrirModalSubida(<?php echo $act['id_actividad']; ?>)">
-                                                        <i class="fas fa-upload"></i> Subir Tarea
-                                                    </button>
-                                                <?php else: ?>
-                                                    <span class="status-entregado status-rojo"><i class="fas fa-lock"></i> Entrega Cerrada</span>
-                                                <?php endif; ?>
-                                                
-                                            <?php endif; ?>
-                                        <?php endif; ?>
-                                    </div>
-                                    
-                                    <!-- Formulario de Subida -->
-                                    <form id="form-subida-<?php echo $act['id_actividad']; ?>" action="procesos/subir_tarea_clase.php" method="POST" enctype="multipart/form-data" style="display:none; margin-top: 15px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px dashed #cbd5e1;">
-                                        <input type="hidden" name="id_actividad" value="<?php echo $act['id_actividad']; ?>">
-                                        <input type="hidden" name="id_clase" value="<?php echo $id_clase; ?>">
-                                        
-                                        <?php if($vencida && $acepta_retardo): ?>
-                                            <div style="color: #dc2626; font-size: 0.8rem; font-weight: 700; margin-bottom: 10px;"><i class="fas fa-info-circle"></i> Nota: Esta tarea está vencida. Se registrará como "Entrega con retardo".</div>
-                                        <?php endif; ?>
-
-                                        <label style="display:block; font-size:0.8rem; font-weight:700; margin-bottom:8px; color:#475569;">Adjuntar archivo de tarea (PDF, DOCX, JPG)</label>
-                                        <input type="file" name="archivo_tarea" required style="margin-bottom:10px; width:100%; border: 1px solid #cbd5e1; padding: 8px; border-radius: 6px;">
-                                        <div style="display:flex; gap:10px;">
-                                            <button type="submit" class="btn-action btn-primary" style="padding: 6px 12px;">Confirmar Envío</button>
-                                            <button type="button" class="btn-action btn-outline" style="padding: 6px 12px;" onclick="cerrarModalSubida(<?php echo $act['id_actividad']; ?>)">Cancelar</button>
                                         </div>
-                                    </form>
+                                    <?php endif; ?>
 
+                                    <?php if($es_tarea): ?>
+                                        <div class="box-entrega">
+                                            <h5><i class="fas fa-user-graduate"></i> Sección de Entrega</h5>
+
+                                            <?php if($entregado): ?>
+                                                <div style="display:flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 10px;">
+                                                    <?php if($info_entrega['estatus_entrega'] === 'Con Retardo'): ?>
+                                                        <span class="status-entregado status-rojo" style="margin:0;"><i class="fas fa-clock"></i> Entregada (Retardo)</span>
+                                                    <?php else: ?>
+                                                        <span class="status-entregado status-verde" style="margin:0;"><i class="fas fa-check-double"></i> Entregada a Tiempo</span>
+                                                    <?php endif; ?>
+                                                    
+                                                    <?php if(!empty($info_entrega['archivo_ruta'])): 
+                                                        $archivo_entregado = basename($info_entrega['archivo_ruta']);
+                                                        $nombre_entrega_limpio = preg_replace('/^al_\d+_\d+_/', '', $archivo_entregado);
+                                                    ?>
+                                                        <a href="../uploads/entregas_alumnos/<?php echo htmlspecialchars($archivo_entregado); ?>" download="<?php echo htmlspecialchars($nombre_entrega_limpio); ?>" target="_blank" class="btn-action btn-outline" style="background: white;">
+                                                            <i class="fas fa-file-download"></i> Mi archivo: <?php echo htmlspecialchars($nombre_entrega_limpio); ?>
+                                                        </a>
+                                                    <?php endif; ?>
+                                                </div>
+
+                                                <?php if(!empty($info_entrega['retroalimentacion'])): ?>
+                                                    <div style="background: white; border-left: 4px solid #3b82f6; padding: 12px; border-radius: 6px; font-size: 0.85rem; color: #334155; box-shadow: 0 1px 2px rgba(0,0,0,0.05); margin-bottom: 10px;">
+                                                        <strong style="display:block; margin-bottom: 4px; color: #0f172a;">
+                                                            <i class="fas fa-comment-dots" style="color: #3b82f6;"></i> Comentario del Profesor:
+                                                        </strong>
+                                                        <?php echo nl2br(htmlspecialchars($info_entrega['retroalimentacion'])); ?>
+                                                    </div>
+                                                <?php endif; ?>
+
+                                                <?php if (!$vencida || $acepta_retardo): ?>
+                                                    <div id="acciones-entrega-<?php echo $act['id_actividad']; ?>" style="margin-top: 15px; border-top: 1px dashed #cbd5e1; padding-top: 15px; display: flex; gap: 10px;">
+                                                        <button type="button" class="btn-action btn-outline" onclick="document.getElementById('form-editar-<?php echo $act['id_actividad']; ?>').style.display = 'block'; document.getElementById('acciones-entrega-<?php echo $act['id_actividad']; ?>').style.display = 'none';">
+                                                            <i class="fas fa-edit"></i> Editar envío
+                                                        </button>
+                                                        
+                                                        <form action="procesos/eliminar_entrega.php" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas quitar tu envío? Esta acción no se puede deshacer.');" style="margin:0;">
+                                                            <input type="hidden" name="id_actividad" value="<?php echo $act['id_actividad']; ?>">
+                                                            <input type="hidden" name="id_clase" value="<?php echo $id_clase; ?>">
+                                                            <button type="submit" class="btn-action" style="background: #fef2f2; color: #dc2626; border: 1px solid #fecaca;">
+                                                                <i class="fas fa-trash-alt"></i> Quitar envío
+                                                            </button>
+                                                        </form>
+                                                    </div>
+
+                                                    <div id="form-editar-<?php echo $act['id_actividad']; ?>" style="display: none; margin-top: 10px; background: white; padding: 15px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                                                        <p style="font-size: 0.85rem; color: #64748b; margin: 0 0 10px 0;"><i class="fas fa-info-circle"></i> Sube un nuevo archivo. El envío anterior será reemplazado.</p>
+                                                        <form action="procesos/editar_entrega.php" method="POST" enctype="multipart/form-data">
+                                                            <input type="hidden" name="id_actividad" value="<?php echo $act['id_actividad']; ?>">
+                                                            <input type="hidden" name="id_clase" value="<?php echo $id_clase; ?>">
+                                                            
+                                                            <?php if($vencida && $acepta_retardo): ?>
+                                                                <div style="color: #dc2626; font-size: 0.8rem; font-weight: 700; margin-bottom: 10px;"><i class="fas fa-info-circle"></i> Nota: Esta tarea está vencida. La nueva edición se registrará como "Entrega con retardo".</div>
+                                                            <?php endif; ?>
+                                                            
+                                                            <div style="display:flex; gap:10px; align-items: center; flex-wrap:wrap;">
+                                                                <input type="file" name="archivo_tarea" required style="border: 1px solid #cbd5e1; padding: 6px; border-radius: 6px; background: white; font-size: 0.85rem; flex: 1; min-width: 200px;">
+                                                                <button type="submit" class="btn-action btn-primary" style="padding: 8px 16px;">Guardar cambios</button>
+                                                                <button type="button" class="btn-action btn-outline" onclick="document.getElementById('form-editar-<?php echo $act['id_actividad']; ?>').style.display = 'none'; document.getElementById('acciones-entrega-<?php echo $act['id_actividad']; ?>').style.display = 'flex';">Cancelar</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                <?php else: ?>
+                                                     <div style="margin-top: 15px; color: #64748b; font-size: 0.8rem; border-top: 1px dashed #cbd5e1; padding-top: 15px;">
+                                                         <i class="fas fa-lock"></i> La fecha límite ha pasado. Ya no puedes modificar ni quitar tu envío.
+                                                     </div>
+                                                <?php endif; ?>
+
+                                            <?php else: ?>
+                                                <?php if($bloqueo_fecha): ?>
+                                                    <div style="color: #991b1b; background:#fef2f2; border:1px solid #fecaca; padding:10px; border-radius:6px; font-size: 0.85rem; font-weight: 600;">
+                                                        <i class="fas fa-lock"></i> La fecha límite ha pasado y esta tarea no acepta entregas con retardo.
+                                                    </div>
+                                                <?php else: ?>
+                                                    <form action="procesos/subir_tarea_clase.php" method="POST" enctype="multipart/form-data">
+                                                        <input type="hidden" name="id_actividad" value="<?php echo $act['id_actividad']; ?>">
+                                                        <input type="hidden" name="id_clase" value="<?php echo $id_clase; ?>">
+                                                        
+                                                        <?php if($vencida && $acepta_retardo): ?>
+                                                            <div style="color: #dc2626; font-size: 0.8rem; font-weight: 700; margin-bottom: 10px;"><i class="fas fa-info-circle"></i> Nota: Esta tarea está vencida. Se registrará como "Entrega con retardo".</div>
+                                                        <?php endif; ?>
+
+                                                        <div style="display:flex; gap:10px; align-items: center; flex-wrap:wrap;">
+                                                            <input type="file" name="archivo_tarea" required style="border: 1px solid #cbd5e1; padding: 6px; border-radius: 6px; background: white; font-size: 0.85rem; flex: 1; min-width: 200px;">
+                                                            <button type="submit" class="btn-action btn-primary" style="padding: 8px 16px;">Confirmar Envío</button>
+                                                        </div>
+                                                    </form>
+                                                <?php endif; ?>
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         <?php endforeach; ?>
-
                     <?php endif; ?>
                 </div>
-
-                <div class="col-side">
-                    <?php if ($clase_en_vivo_activa): ?>
-                        <a href="<?php echo htmlspecialchars($clase['enlace_clase_virtual']); ?>" target="_blank" class="btn-live-class">
-                            <i class="fas fa-video"></i>
-                            <strong>Entrar a Clase en Línea</strong>
-                            <span>La sesión está activa ahora mismo</span>
-                        </a>
-                    <?php endif; ?>
-
-                    <div class="side-widget">
-                        <h3 class="widget-title"><i class="fas fa-user-check" style="color:#059669;"></i> Asistencia en Clase</h3>
-                        <p style="font-size:0.85rem; color:#64748b; margin: 0 0 15px 0;">Tu registro de entradas exclusivo para esta asignatura.</p>
-                        
-                        <div class="attendance-stats">
-                            <div class="att-box att-green">
-                                <strong><?php echo $asistencias_clase; ?></strong>
-                                <span>Presentes</span>
-                            </div>
-                            <div class="att-box att-red">
-                                <strong><?php echo $faltas_clase; ?></strong>
-                                <span>Faltas</span>
-                            </div>
-                        </div>
-                        <a href="mis_asistencias.php" style="display:block; text-align:center; font-size:0.8rem; color:#3b82f6; font-weight:600; text-decoration:none; margin-top:15px;">
-                            Ver desglose completo <i class="fas fa-external-link-alt"></i>
-                        </a>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </main>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebarOverlay');
-            const mobileMenu = document.getElementById('mobileMenu');
-            const collapseToggle = document.getElementById('collapseToggle');
-            const body = document.body;
-
-            if (localStorage.getItem('sidebarCollapsed') === 'true') body.classList.add('sidebar-collapsed');
-
-            if (collapseToggle) {
-                collapseToggle.addEventListener('click', () => {
-                    body.classList.toggle('sidebar-collapsed');
-                    localStorage.setItem('sidebarCollapsed', body.classList.contains('sidebar-collapsed'));
-                });
-            }
-
-            window.addEventListener('resize', () => {
-                if (window.innerWidth > 768) {
-                    sidebar.classList.remove('mobile-open');
-                    overlay.classList.remove('visible');
-                    body.classList.remove('menu-open');
-                }
-            });
-
-            if (mobileMenu) {
-                mobileMenu.addEventListener('click', () => {
-                    sidebar.classList.add('mobile-open');
-                    overlay.classList.add('visible');
-                    body.classList.add('menu-open');
-                });
-            }
-            if (overlay) {
-                overlay.addEventListener('click', () => {
-                    sidebar.classList.remove('mobile-open');
-                    overlay.classList.remove('visible');
-                    body.classList.remove('menu-open');
-                });
-            }
-
-            const profileBtn = document.getElementById('profileBtn');
-            const profileDropdown = document.getElementById('profileDropdown');
-
-            if (profileBtn && profileDropdown) {
-                profileBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    profileDropdown.classList.toggle('active');
-                });
-                document.addEventListener('click', (e) => {
-                    if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
-                        profileDropdown.classList.remove('active');
-                    }
-                });
-            }
-        });
-
-        function abrirModalSubida(id) {
-            document.getElementById('form-subida-' + id).style.display = 'block';
-        }
-        function cerrarModalSubida(id) {
-            document.getElementById('form-subida-' + id).style.display = 'none';
-        }
-    </script>
-</body>
-</html>

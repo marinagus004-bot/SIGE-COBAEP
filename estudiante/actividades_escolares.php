@@ -34,16 +34,16 @@ try {
     }
 
     // 2. Obtener las Materias Regulares a las que está inscrito el alumno
-    // (Asumimos que tienes una tabla CLASES y una MATERIAS. También añadimos un campo ficticio 'enlace_clase_virtual' para la lógica de clases en línea)
-   $stmtClases = $pdo->prepare("
-    SELECT c.id_clase, m.nombre_materia, m.imagen_portada, prof.nombre AS maestro_nombre, prof.apellido_paterno AS maestro_apellido,
-           c.enlace_clase_virtual 
-    FROM clase_regular_alumno ca
-    INNER JOIN clases_regulares c ON ca.id_clase = c.id_clase
-    INNER JOIN materias m ON c.id_materia = m.id_materia
-    LEFT JOIN maestros prof ON c.id_maestro = prof.id_maestro
-    WHERE ca.id_alumno = ? AND c.estatus = 'Activa' AND ca.acceso = 1
-");
+    $stmtClases = $pdo->prepare("
+        SELECT c.id_clase, m.nombre_materia, m.imagen_portada, prof.nombre AS maestro_nombre, prof.apellido_paterno AS maestro_apellido,
+               c.enlace_clase_virtual, g.semestre, g.nombre_grupo
+        FROM clase_regular_alumno ca
+        INNER JOIN clases_regulares c ON ca.id_clase = c.id_clase
+        INNER JOIN materias m ON c.id_materia = m.id_materia
+        LEFT JOIN maestros prof ON c.id_maestro = prof.id_maestro
+        LEFT JOIN grupos g ON c.id_grupo = g.id_grupo
+        WHERE ca.id_alumno = ? AND c.estatus = 'Activa' AND ca.acceso = 1
+    ");
     $stmtClases->execute([$id_alumno]);
     $mis_clases = $stmtClases->fetchAll(PDO::FETCH_ASSOC);
 
@@ -245,57 +245,62 @@ try {
                         <?php foreach ($mis_clases as $clase): ?>
                             
                             <?php 
-                                $bg_image = "linear-gradient(145deg, #0f172a, #063f2b)";
-                                if (!empty($clase['imagen_portada'])) {
-                                    $ruta_img = '../' . $clase['imagen_portada'];
-                                    $bg_image = "linear-gradient(rgba(15, 23, 42, 0.4), rgba(15, 23, 42, 0.8)), url('" . htmlspecialchars($ruta_img) . "')";
-                                }
+                                $bg_banner = !empty($clase['imagen_portada']) ? '../' . $clase['imagen_portada'] : '';
+                                // Si hay imagen, la ponemos de fondo en TODA la tarjeta
+                                $style_card = !empty($bg_banner) ? "background: url('".htmlspecialchars($bg_banner)."') center/cover;" : "background: white;";
                                 
-                                // Simulación: Comprobar si el maestro configuró un enlace de videollamada para hoy
                                 $clase_en_vivo_activa = !empty($clase['enlace_clase_virtual']);
                             ?>
 
-                            <div class="activity-card">
-                                <div class="activity-header" style="background-image: <?php echo $bg_image; ?>;">
+                            <!-- Tarjeta Principal con fondo completo -->
+                            <div class="activity-card" style="<?php echo $style_card; ?> min-height: 250px; display: flex; flex-direction: column;">
+                                
+                                <!-- BANNER SUPERIOR TRANSPARENTE -->
+                                <div style="height: 90px; position: relative; <?php echo empty($bg_banner) ? 'background: linear-gradient(145deg, var(--green-900), var(--green-700));' : ''; ?>">
                                     <div class="badges-container">
-                                        <span class="activity-badge">Materia</span>
+                                        <span class="activity-badge"><i class="fas fa-users"></i> Grupo <?php echo htmlspecialchars($clase['semestre'] . '° "' . $clase['nombre_grupo'] . '"'); ?></span>
                                         <?php if($clase_en_vivo_activa): ?>
                                             <span class="activity-badge live-badge"><span class="live-dot"></span> EN VIVO</span>
                                         <?php endif; ?>
                                     </div>
                                 </div>
 
-                                <div class="activity-body">
-                                    <h3><?php echo htmlspecialchars($clase['nombre_materia']); ?></h3>
+                                <!-- CONTENIDO INFERIOR (Glassmorphism) -->
+                                <div style="padding: 1.2rem 1.5rem 1.5rem 1.5rem; display: flex; flex-direction: column; flex: 1; justify-content: space-between; background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-top: 1px solid rgba(255, 255, 255, 0.6);">
                                     
-                                    <div class="activity-meta">
-                                        <div class="meta-item">
-                                            <i class="fas fa-chalkboard-user"></i> 
-                                            <span>Prof: <?php echo htmlspecialchars($clase['maestro_nombre'] . ' ' . $clase['maestro_apellido']); ?></span>
-                                        </div>
-                                        <div class="meta-item">
-                                            <i class="fas fa-tasks"></i> 
-                                            <span>Actividades y Trabajos</span>
-                                        </div>
-                                        <div class="meta-item">
-                                            <i class="fas fa-user-check"></i> 
-                                            <span>Asistencia de la materia</span>
+                                    <div>
+                                        <h3 style="margin: 0 0 1rem 0; color: #0f172a; font-size: 1.3rem; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 3px rgba(255,255,255,0.9);">
+                                            <?php echo htmlspecialchars($clase['nombre_materia']); ?>
+                                        </h3>
+                                        
+                                        <div style="background: rgba(248, 250, 252, 0.8); border-radius: 10px; padding: 12px; border: 1px solid rgba(226, 232, 240, 0.7); margin-bottom: 1rem;">
+                                            <div class="meta-item">
+                                                <i class="fas fa-chalkboard-user"></i> 
+                                                <span>Prof: <?php echo htmlspecialchars($clase['maestro_nombre'] . ' ' . $clase['maestro_apellido']); ?></span>
+                                            </div>
+                                            <div class="meta-item">
+                                                <i class="fas fa-tasks"></i> 
+                                                <span>Actividades y Trabajos</span>
+                                            </div>
+                                            <div class="meta-item">
+                                                <i class="fas fa-user-check"></i> 
+                                                <span>Asistencia de la materia</span>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                                
-                                <div class="activity-footer">
-                                    <?php if($clase_en_vivo_activa): ?>
-                                        <!-- Si hay clase por mal clima, se pinta rojo y enlaza directo a la clase y a la plataforma -->
-                                        <a href="aula_virtual.php?id=<?php echo $clase['id_clase']; ?>" class="btn-enter btn-live">
-                                            Entrar a Clase en Línea <i class="fas fa-video"></i>
-                                        </a>
-                                    <?php else: ?>
-                                        <!-- Botón normal verde -->
-                                        <a href="aula_virtual.php?id=<?php echo $clase['id_clase']; ?>" class="btn-enter">
-                                            Ver Actividades <i class="fas fa-arrow-right"></i>
-                                        </a>
-                                    <?php endif; ?>
+                                    
+                                    <div style="margin-top: auto;">
+                                        <?php if($clase_en_vivo_activa): ?>
+                                            <a href="aula_virtual.php?id=<?php echo $clase['id_clase']; ?>" class="btn-enter btn-live" style="box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3);">
+                                                Entrar a Clase en Línea <i class="fas fa-video"></i>
+                                            </a>
+                                        <?php else: ?>
+                                            <a href="aula_virtual.php?id=<?php echo $clase['id_clase']; ?>" class="btn-enter" style="box-shadow: 0 2px 6px rgba(5, 150, 105, 0.3);">
+                                                Ver Actividades <i class="fas fa-arrow-right"></i>
+                                            </a>
+                                        <?php endif; ?>
+                                    </div>
+
                                 </div>
                             </div>
                             
