@@ -1,0 +1,203 @@
+/* =========================================================
+   ESTILOS ESPECÍFICOS DEL ESPACIO DE REGULARIZACIÓN (ALUMNO)
+   ========================================================= */
+
+/* Layout general */
+.layout-espacio {
+    padding: 30px 40px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 350px;
+    gap: 30px;
+    align-items: start;
+}
+
+/* Tipografía de Utilidad */
+.icon-green { color: var(--green, #16a05d); }
+.text-muted { color: #64748b; margin: 0; }
+.italic { font-style: italic; }
+.text-center { text-align: center; }
+.text-sm { font-size: 0.85rem; margin: 0; }
+
+/* Topbar Ajustes */
+.topbar-title-wrapper { display: flex; align-items: center; gap: 10px; }
+.topbar-title { margin: 0; font-size: 1.5rem; color: var(--ink, #0f172a); }
+
+/* Hero Section */
+.hero-estudiante {
+    grid-column: 1 / -1;
+    border-radius: 20px;
+    padding: 40px;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    color: #ffffff;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+.hero-title { font-size: 2.2rem; margin: 0 0 10px 0; }
+.hero-desc { color: #d1fae5; margin: 0; max-width: 600px; line-height: 1.5; }
+.btn-back { display: inline-flex; align-items: center; gap: 8px; color: #a7f3d0; font-weight: 600; text-decoration: none; margin-bottom: 20px; transition: 0.2s; }
+.btn-back:hover { color: #ffffff; transform: translateX(-5px); }
+.hero-footer { margin-top: 20px; display: flex; gap: 15px; }
+.badge-profesor { background: rgba(255, 255, 255, 0.2); padding: 5px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; backdrop-filter: blur(5px); }
+
+/* Alertas */
+.alert { padding: 15px; border-radius: 10px; margin-bottom: 20px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.alert-success { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+.alert-error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+
+/* Contenido Principal (Materiales) */
+.section-title { margin-top: 0; color: #0f172a; font-size: 1.3rem; margin-bottom: 20px; }
+.general-title { color: #64748b; font-size: 1rem; text-transform: uppercase; margin: 30px 0 15px 0; letter-spacing: 0.05em; font-weight: 800; }
+
+.empty-state-materiales {
+    text-align: center; padding: 40px; background: #f8fafc;
+    border-radius: 16px; border: 1px dashed #cbd5e1; color: #64748b;
+}
+.empty-icon { font-size: 2rem; margin-bottom: 10px; display: block; color: #cbd5e1; }
+
+/* Bloques */
+.bloque-box { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; margin-bottom: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); overflow: hidden; }
+.bloque-header { background: #f8fafc; padding: 18px 20px; border-bottom: 1px solid #e2e8f0; font-weight: 700; color: #0f172a; font-size: 1.1rem; }
+.bloque-body { padding: 20px; }
+
+/* Tarjetas de Material (Items) - ESTRUCTURA BLINDADA CON GRID */
+.mat-item { 
+    display: grid !important; 
+    grid-template-columns: 45px 1fr auto; /* 3 Columnas fijas: Icono (45px) | Texto (resto) | Botón (auto) */
+    align-items: center; /* Centra todo verticalmente */
+    gap: 20px; 
+    padding: 20px; 
+    border: 1px solid #e2e8f0; 
+    border-radius: 12px; 
+    margin-bottom: 20px; /* Separación garantizada entre tarjetas */
+    background: #ffffff; 
+    min-height: 85px; /* Evita que se aplasten */
+    box-sizing: border-box;
+    transition: 0.2s;
+}
+
+.mat-item:hover { 
+    border-color: #cbd5e1; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.04); 
+    transform: translateY(-2px); 
+}
+
+.mat-icon { 
+    width: 45px; 
+    height: 45px; 
+    background: #e0f2fe; 
+    color: #0284c7; 
+    border-radius: 12px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    font-size: 1.2rem; 
+}
+
+.mat-info { 
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0; /* LA MAGIA: Evita que textos largos rompan el Grid */
+}
+
+.mat-title { 
+    margin: 0 0 5px 0; 
+    color: #1e293b; 
+    font-size: 1.05rem; 
+}
+
+.mat-desc { 
+    margin: 0; 
+    color: #64748b; 
+    font-size: 0.85rem; 
+    line-height: 1.5; 
+}
+
+/* NUEVO: Estilo para el nombre del archivo */
+.mat-filename {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    font-size: 0.75rem;
+    color: #0284c7;
+    background: #f0f9ff;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-weight: 600;
+    max-width: fit-content;
+    border: 1px solid #bae6fd;
+}
+
+.btn-download { 
+    background: #f8fafc; 
+    color: #334155; 
+    padding: 10px 18px; 
+    border-radius: 8px; 
+    border: 1px solid #cbd5e1;
+    text-decoration: none; 
+    font-weight: 600; 
+    font-size: 0.85rem; 
+    transition: 0.2s; 
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.btn-download:hover { 
+    background: var(--green, #16a05d); 
+    color: #ffffff; 
+    border-color: var(--green, #16a05d);
+}
+
+/* RESPONSIVE PARA MÓVILES */
+@media (max-width: 600px) {
+    .mat-item {
+        grid-template-columns: 1fr; /* En celulares, se apilan ordenadamente */
+        text-align: center;
+        gap: 15px;
+    }
+    .mat-icon { margin: 0 auto; }
+    .mat-filename { margin: 10px auto 0; }
+    .btn-download { justify-content: center; width: 100%; }
+}
+
+/* Columna Lateral (Entregas) */
+.side-panel { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
+.panel-title { margin-top: 0; margin-bottom: 20px; color: #0f172a; font-size: 1.1rem; }
+
+.status-entrega { padding: 12px; border-radius: 10px; font-size: 0.9rem; font-weight: 700; text-align: center; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.status-faltante { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+.status-entregado { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+.status-bloqueado { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+
+.entrega-date { font-size: 0.85rem; color: #64748b; margin-bottom: 20px; text-align: center; }
+
+.form-group-upload { margin-bottom: 15px; }
+.upload-label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 8px; color: #1e293b; }
+.input-file { width: 100%; padding: 10px; border: 1px dashed #cbd5e1; border-radius: 8px; font-size: 0.85rem; background: #f8fafc; box-sizing: border-box; transition: 0.2s; cursor: pointer; }
+.input-file:hover { border-color: var(--green, #16a05d); }
+
+.btn-subir { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 14px; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; text-decoration: none; transition: 0.2s; box-sizing: border-box; font-size: 0.95rem; }
+.btn-subir.primary { background: var(--green, #16a05d); color: #ffffff; box-shadow: 0 4px 10px rgba(22,160,93,0.2); }
+.btn-subir.primary:hover { background: #11804b; transform: translateY(-2px); }
+.btn-subir.outline { background: #f1f5f9; color: #0f172a; border: 1px solid #e2e8f0; }
+.btn-subir.outline:hover { background: #e2e8f0; }
+
+/* Responsive */
+@media (max-width: 992px) {
+    .layout-espacio { grid-template-columns: 1fr; }
+    .col-side { order: -1; }
+}
+@media (max-width: 768px) {
+    .layout-espacio { padding: 20px 15px; }
+    .hero-estudiante { padding: 25px; min-height: 180px; }
+    .hero-title { font-size: 1.8rem; }
+}
