@@ -1,3 +1,21 @@
+/* =======================================================
+   0. FIX DEL BRINCO (EJECUCIÓN INMEDIATA)
+   ======================================================= */
+// Al sacar esta validación del 'DOMContentLoaded', se ejecuta en el 
+// milisegundo exacto en que carga la página, ANTES de dibujarla.
+// Esto elimina por completo el "brinco" o parpadeo de la barra.
+if (localStorage.getItem('sidebarCollapsed') === 'true') {
+    // Agregamos la clase de inmediato.
+    document.body.classList.add('sidebar-collapsed');
+    
+    // (Opcional) Congelamos las animaciones por 50ms para que 
+    // la transición no se vea al cargar la página nueva.
+    document.body.classList.add('preload-transitions');
+    setTimeout(() => {
+        document.body.classList.remove('preload-transitions');
+    }, 50);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     // Referencias del DOM
     const sidebar = document.getElementById('sidebar');
@@ -10,10 +28,6 @@ document.addEventListener('DOMContentLoaded', () => {
     /* =======================================
        1. LÓGICA DE COLAPSO EN ESCRITORIO
        ======================================= */
-    if (localStorage.getItem('sidebarCollapsed') === 'true') {
-        body.classList.add('sidebar-collapsed');
-    }
-
     if (collapseToggle) {
         collapseToggle.addEventListener('click', () => {
             body.classList.toggle('sidebar-collapsed');
@@ -25,14 +39,14 @@ document.addEventListener('DOMContentLoaded', () => {
        2. LÓGICA DEL MENÚ MÓVIL
        ======================================= */
     function abrirMenu() {
-        sidebar.classList.add('mobile-open');
-        overlay.classList.add('visible');
+        if(sidebar) sidebar.classList.add('mobile-open');
+        if(overlay) overlay.classList.add('visible');
         body.classList.add('menu-open');
     }
 
     function cerrarMenu() {
-        sidebar.classList.remove('mobile-open');
-        overlay.classList.remove('visible');
+        if(sidebar) sidebar.classList.remove('mobile-open');
+        if(overlay) overlay.classList.remove('visible');
         body.classList.remove('menu-open');
     }
 
@@ -71,4 +85,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     actualizarHora();
     setInterval(actualizarHora, 60000);
+
+    /* ==========================================
+       4. LÓGICA PARA EL MENÚ DESPLEGABLE DEL PERFIL
+       ========================================== */
+    const btnPerfil = document.getElementById('btnPerfil');
+    const menuPerfil = document.getElementById('menuPerfil');
+
+    if (btnPerfil && menuPerfil) {
+        // Mostrar/Ocultar al hacer clic en el nombre
+        btnPerfil.addEventListener('click', (e) => {
+            e.stopPropagation(); // Evita que el clic se propague al documento
+            menuPerfil.classList.toggle('active');
+        });
+
+        // Cerrar el menú si el usuario hace clic en cualquier otra parte de la pantalla
+        document.addEventListener('click', (e) => {
+            if (!btnPerfil.contains(e.target) && !menuPerfil.contains(e.target)) {
+                menuPerfil.classList.remove('active');
+            }
+        });
+    }
 });

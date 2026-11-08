@@ -17,17 +17,17 @@ $iniciales = strtoupper(substr($partes_nombre[0], 0, 1) . (isset($partes_nombre[
 $mis_grupos = [];
 
 try {
+    // SOLO TRAEMOS LOS GRUPOS PUROS ASIGNADOS AL DOCENTE
     $stmtGrupos = $pdo->prepare("
         SELECT 
             g.id_grupo,
             g.nombre_grupo,
             g.semestre,
             g.turno,
-            (SELECT COUNT(id_alumno) FROM GRUPO_ALUMNO ga WHERE ga.id_grupo = g.id_grupo AND ga.fecha_baja IS NULL) AS total_alumnos
-        FROM GRUPO_MAESTRO gm
-        INNER JOIN GRUPOS g ON gm.id_grupo = g.id_grupo
-        WHERE gm.id_maestro = ?
-        ORDER BY g.semestre, g.nombre_grupo ASC
+            (SELECT COUNT(id_alumno) FROM grupo_alumno WHERE id_grupo = g.id_grupo AND fecha_baja IS NULL) AS total_alumnos
+        FROM horarios_maestro hm
+        INNER JOIN grupos g ON hm.id_grupo = g.id_grupo
+        WHERE hm.id_maestro = ?
     ");
     $stmtGrupos->execute([$id_docente]);
     $mis_grupos = $stmtGrupos->fetchAll(PDO::FETCH_ASSOC);
@@ -73,6 +73,12 @@ try {
 </head>
 
 <body>
+    <!-- SCRIPT ANTI-PARPADEO: Debe ir exactamente aquí, antes de cualquier HTML -->
+    <script>
+        if (localStorage.getItem('sidebarCollapsed') === 'true') {
+            document.body.classList.add('sidebar-collapsed', 'preload-transitions');
+        }
+    </script>
     <!-- BARRA LATERAL RESTAURADA A SU DISEÑO ORIGINAL PERFECTO -->
     <aside class="sidebar" id="sidebar">
         <button id="collapseToggle" class="collapse-toggle" aria-label="Colapsar menú">
@@ -96,7 +102,7 @@ try {
 
                 <span class="nav-heading">Académico</span>
                 <a href="mis_grupos.php" class="nav-item active">
-                    <i class="fas fa-laptop-code"></i><span>Mis Aulas (Grupos)</span>
+                    <i class="fas fa-laptop-code"></i><span>Mis Grupos</span>
                 </a>
                 <a href="horario.php" class="nav-item">
                     <i class="far fa-calendar-alt"></i><span>Mi Horario</span>
@@ -132,11 +138,22 @@ try {
             </div>
             <div class="topbar-right">
                 <div class="date-pill"><i class="far fa-calendar"></i><span id="fechaTexto"><?php echo date('d/m/Y'); ?></span></div>
-                <div class="profile">
-                    <div class="profile-avatar"><?php echo $iniciales; ?></div>
-                    <div class="profile-info">
-                        <strong><?php echo $nombre_usuario; ?></strong>
-                        <span>Docente</span>
+                <!-- Contenedor del perfil con menú desplegable -->
+                <div class="profile-dropdown" style="position: relative;">
+                    <div class="profile" id="btnPerfil" style="cursor: pointer; display: flex; align-items: center; gap: 10px;">
+                        <div class="profile-avatar"><i class="fas fa-chalkboard-user"></i></div>
+                        <div class="profile-info">
+                            <strong><?php echo $nombre_usuario; ?></strong>
+                            <span>Docente</span>
+                        </div>
+                        <i class="fas fa-chevron-down" style="font-size: 12px; color: #666;"></i>
+                    </div>
+                    
+                    <!-- Menú desplegable oculto por defecto -->
+                    <div class="dropdown-menu-perfil" id="menuPerfil">
+                        <a href="perfil.php"><i class="fas fa-user-edit"></i> Mi Perfil</a>
+                        <hr style="margin: 0; border: none; border-top: 1px solid #eee;">
+                        <a href="../logout.php" style="color: #dc3545;"><i class="fas fa-arrow-right-from-bracket"></i> Cerrar Sesión</a>
                     </div>
                 </div>
             </div>

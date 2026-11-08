@@ -17,9 +17,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $acepta_retardo = isset($_POST['acepta_retardo']) ? 1 : 0;
     $solo_asistentes = isset($_POST['solo_asistentes']) ? 1 : 0;
 
-    // --- NUEVAS VARIABLES INTEGRADAS ---
+    // --- VARIABLES DE VISIBILIDAD Y PROGRAMACIÓN ---
     $visible = isset($_POST['visible']) ? 1 : 0;
     $fecha_apertura = !empty($_POST['fecha_apertura']) ? $_POST['fecha_apertura'] : null;
+
+    // --- NUEVAS VARIABLES DE LÍMITES DE ARCHIVOS ---
+    $tamano = isset($_POST['tamano_maximo']) ? (int)$_POST['tamano_maximo'] : 10;
+    $archivos = isset($_POST['numero_archivos']) ? (int)$_POST['numero_archivos'] : 1;
+    $tipo = isset($_POST['tipo_archivo']) ? $_POST['tipo_archivo'] : '*';
 
     if ($id_clase === 0 || empty($titulo)) {
         header("Location: ../gestionar_aula.php?id_clase=" . $id_clase . "&error=El título es obligatorio.");
@@ -28,10 +33,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $ruta_bd = null;
 
+    // Guardado del archivo adjunto del profesor (si envió uno)
     if (isset($_FILES['archivo']) && $_FILES['archivo']['error'] === UPLOAD_ERR_OK) {
-        $archivo = $_FILES['archivo'];
+        $archivo_prof = $_FILES['archivo'];
         
-        if ($archivo['size'] > 10485760) {
+        if ($archivo_prof['size'] > 10485760) {
             header("Location: ../gestionar_aula.php?id_clase=$id_clase&error=Archivo muy pesado (Max 10MB).");
             exit();
         }
@@ -39,14 +45,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $carpeta_destino = '../../uploads/materiales_clase/';
         if (!is_dir($carpeta_destino)) { mkdir($carpeta_destino, 0777, true); }
         
-        $extension = strtolower(pathinfo($archivo['name'], PATHINFO_EXTENSION));
-        $nombre_original = pathinfo($archivo['name'], PATHINFO_FILENAME);
+        $extension = strtolower(pathinfo($archivo_prof['name'], PATHINFO_EXTENSION));
+        $nombre_original = pathinfo($archivo_prof['name'], PATHINFO_FILENAME);
         $nombre_limpio = preg_replace("/[^a-zA-Z0-9_-]/", "_", $nombre_original);
         
         $nuevo_nombre = "mat_" . time() . "_" . $nombre_limpio . "." . $extension;
         $ruta_final = $carpeta_destino . $nuevo_nombre;
 
-        if (move_uploaded_file($archivo['tmp_name'], $ruta_final)) {
+        if (move_uploaded_file($archivo_prof['tmp_name'], $ruta_final)) {
             $ruta_bd = $nuevo_nombre;
         }
     }
@@ -54,9 +60,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $pdo->beginTransaction();
 
-        // 1. Guardamos la actividad y obtenemos su ID (AHORA INCLUYE VISIBLE Y FECHA_APERTURA)
-        $stmt = $pdo->prepare("INSERT INTO actividades_clase (id_clase, titulo, descripcion, archivo_ruta, fecha_limite, permite_entregas, acepta_retardo, visible, fecha_apertura) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->execute([$id_clase, $titulo, $descripcion, $ruta_bd, $fecha_limite, $permite_entregas, $acepta_retardo, $visible, $fecha_apertura]);
+        // 1. Guardamos la actividad (AHORA INCLUYE LOS LÍMITES DE ARCHIVO Y EL ARCHIVO DEL MAESTRO)
+        $stmt = $pdo->prepare("INSERT INTO actividades_clase (id_clase, titulo, descripcion, archivo_ruta, fecha_limite, permite_entregas, acepta_retardo, visible, fecha_apertura, tamano_maximo, numero_archivos, tipo_archivo) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        
+        // Pasamos exactamente 12 parámetros al execute, en el mismo orden
+        $stmt->execute([$id_clase, $titulo, $descripcion, $ruta_bd, $fecha_limite, $permite_entregas, $acepta_retardo, $visible, $fecha_apertura, $tamano, $archivos, $tipo]);
+        
         $id_actividad = $pdo->lastInsertId();
 
         // 2. VISIBILIDAD INTELIGENTE
