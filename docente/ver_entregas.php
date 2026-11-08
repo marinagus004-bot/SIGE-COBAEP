@@ -16,9 +16,21 @@ if ($id_actividad === 0) {
 }
 
 try {
-    $stmtAct = $pdo->prepare("SELECT titulo, fecha_limite FROM actividades_clase WHERE id_actividad = ?");
-    $stmtAct->execute([$id_actividad]);
+    // La actividad debe pertenecer a una clase del docente que la consulta
+    $stmtAct = $pdo->prepare("
+        SELECT ac.titulo, ac.fecha_limite, ac.id_clase
+        FROM actividades_clase ac
+        INNER JOIN clases_regulares c ON c.id_clase = ac.id_clase
+        WHERE ac.id_actividad = ? AND c.id_maestro = ?
+    ");
+    $stmtAct->execute([$id_actividad, $_SESSION['id_usuario']]);
     $actividad = $stmtAct->fetch(PDO::FETCH_ASSOC);
+
+    if (!$actividad) {
+        header("Location: mis_grupos.php?error=" . urlencode("La actividad no existe o no pertenece a tus clases."));
+        exit();
+    }
+    $id_clase = (int)$actividad['id_clase'];
 
     // Consulta actualizada para traer el id_entrega, estatus_entrega y retroalimentacion
     $stmtEntregas = $pdo->prepare("

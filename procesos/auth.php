@@ -83,6 +83,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
         // ==============================================================
         
+        // Nuevo ID de sesión al iniciar (evita fijación de sesión)
+        session_regenerate_id(true);
+
+        // "Recordar sesión": la cookie dura 30 días en lugar de borrarse al cerrar el navegador
+        if (!empty($_POST['remember'])) {
+            $p = session_get_cookie_params();
+            setcookie(session_name(), session_id(), [
+                'expires'  => time() + 60 * 60 * 24 * 30,
+                'path'     => $p['path'] ?: '/',
+                'httponly' => true,
+                'samesite' => 'Lax',
+            ]);
+        }
+
         // Configurar el "Gafete VIP" (Sesiones) unificadas
         $_SESSION['id_usuario'] = $usuario_encontrado['id_usuario'];
         $_SESSION['matricula']  = $usuario_encontrado['usuario'];

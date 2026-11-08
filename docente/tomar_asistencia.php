@@ -98,7 +98,7 @@ try {
             <i class="fas fa-arrow-left"></i> Volver a Mis Materias
         </a>
 
-        <form action="procesos/guardar_asistencia.php" method="POST">
+        <form action="procesos/docente_guardar_asistencia.php" method="POST">
             <input type="hidden" name="id_clase" value="<?php echo $id_clase; ?>">
 
             <div class="header-asistencia">

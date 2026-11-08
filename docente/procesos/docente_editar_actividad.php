@@ -11,6 +11,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Recepción de datos básicos
     $id_actividad = (int)$_POST['id_actividad'];
     $id_clase = (int)$_POST['id_clase'];
+    require_once __DIR__ . '/permisos.php';
+    if (!docente_dueno_actividad($pdo, $id_actividad) || !docente_dueno_clase($pdo, $id_clase)) docente_denegar(false);
     $titulo = trim($_POST['titulo']);
     $descripcion = trim($_POST['descripcion']);
     

@@ -9,6 +9,8 @@ if (!isset($_SESSION['id_usuario']) || $_SESSION['rol'] !== 'docente') {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id_clase = (int)$_POST['id_clase'];
+    require_once __DIR__ . '/permisos.php';
+    if (!docente_dueno_clase($pdo, $id_clase)) docente_denegar(false);
     $dia_semana = (int)$_POST['dia_semana'];
     $hora_inicio = $_POST['hora_inicio'];
     $hora_fin = $_POST['hora_fin'];

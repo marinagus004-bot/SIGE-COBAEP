@@ -102,7 +102,7 @@ if ($rol_esperado == 'admin') {
                                 <input type="checkbox" name="remember">
                                 Recordar sesión
                             </label>
-                            <a href="#" class="forgot-link">¿Olvidaste tu contraseña?</a>
+                            <a href="#" class="forgot-link" id="forgotLink">¿Olvidaste tu contraseña?</a>
                         </div>
 
                         <!-- CONTENEDOR DE BOTONES -->

@@ -10,6 +10,8 @@ if (!isset($_SESSION['id_usuario']) || $_SESSION['rol'] !== 'docente') {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id_entrega = (int)$_POST['id_entrega'];
     $id_actividad = (int)$_POST['id_actividad'];
+    require_once __DIR__ . '/permisos.php';
+    if (!docente_dueno_entrega($pdo, $id_entrega) || !docente_dueno_actividad($pdo, $id_actividad)) docente_denegar(false);
     $id_clase = (int)$_POST['id_clase'];
     $estatus_entrega = $_POST['estatus_entrega'] === 'Revisada' ? 'Revisada' : 'Pendiente';
     $retroalimentacion = trim($_POST['retroalimentacion']);

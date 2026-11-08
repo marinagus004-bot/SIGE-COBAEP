@@ -1,0 +1,13 @@
+# SIGE-COBAEP — Seguridad
+# Nunca ejecutar scripts que alguien haya subido a una carpeta "uploads"
+<If "%{REQUEST_URI} =~ m#/uploads/.*\.(php[0-9]?|phtml|phar|pht|cgi|pl|py|sh)$#i">
+    Require all denied
+</If>
+
+# No permitir ver la configuración ni los scripts de mantenimiento desde el navegador
+<If "%{REQUEST_URI} =~ m#/(config|vendor)/#">
+    Require all denied
+</If>
+
+# No listar el contenido de las carpetas
+Options -Indexes

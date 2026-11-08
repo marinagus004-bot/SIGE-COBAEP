@@ -123,7 +123,7 @@ $nombre_usuario = isset($_SESSION['nombre']) ? htmlspecialchars($_SESSION['nombr
     <div id="modalInscribir" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header"><h2><i class="fas fa-user-plus"></i> Inscribir Alumnos Existentes</h2><button class="close-modal" id="btnCerrarModal">&times;</button></div>
-            <form action="../procesos/inscribir_multiples.php" method="POST">
+            <form action="Procesos/inscribir_multiples.php" method="POST">
                 <input type="hidden" name="id_grupo" value="<?php echo $id_grupo; ?>">
                 <div class="modal-body">
                     <div class="search-box"><i class="fas fa-search"></i><input type="text" id="buscadorDisponibles" placeholder="Buscar por matrícula o nombre..."></div>

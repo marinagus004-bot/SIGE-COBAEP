@@ -8,6 +8,8 @@ if (!isset($_SESSION['id_usuario']) || $_SESSION['rol'] !== 'docente') {
 }
 
 $id_actividad = isset($_GET['id_actividad']) ? (int)$_GET['id_actividad'] : 0;
+require_once __DIR__ . '/permisos.php';
+if (!docente_dueno_actividad($pdo, $id_actividad)) docente_denegar(true);
 $id_clase = isset($_GET['id_clase']) ? (int)$_GET['id_clase'] : 0; 
 
 if ($id_actividad > 0 && $id_clase > 0) {

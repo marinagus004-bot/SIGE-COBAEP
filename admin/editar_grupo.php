@@ -62,7 +62,7 @@ $nombre_usuario = isset($_SESSION['nombre']) ? htmlspecialchars($_SESSION['nombr
                     <div class="setup-icon-circle" style="background: linear-gradient(145deg, #03721f, #058103); color: #ffff;"><i class="fas fa-pen"></i></div>
                     <div class="setup-header-text"><h2>Información del Grupo</h2><p>Actualiza los datos correspondientes.</p></div>
                 </div>
-                <form action="Procesos/actualizar_grupo.php" method="POST" class="setup-body" id="groupForm">
+                <form action="../procesos/actualizar_grupo.php" method="POST" class="setup-body" id="groupForm">
                     <input type="hidden" name="id_grupo" value="<?php echo $grupo['id_grupo']; ?>">
                     <div class="setup-fields">
                         <div class="field-row">

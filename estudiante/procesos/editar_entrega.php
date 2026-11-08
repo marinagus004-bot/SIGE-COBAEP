@@ -22,10 +22,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt_act = $pdo->prepare("
             SELECT ac.fecha_limite, ac.permite_entregas, ac.acepta_retardo, va.fecha_limite_excepcion 
             FROM actividades_clase ac 
+            INNER JOIN clase_regular_alumno cra ON cra.id_clase = ac.id_clase AND cra.id_alumno = ? AND cra.acceso = 1
             LEFT JOIN visibilidad_actividad va ON ac.id_actividad = va.id_actividad AND va.id_alumno = ?
-            WHERE ac.id_actividad = ?
+            WHERE ac.id_actividad = ? AND ac.id_clase = ? AND ac.visible = 1 AND COALESCE(va.visible, 1) = 1
         ");
-        $stmt_act->execute([$id_alumno, $id_actividad]);
+        $stmt_act->execute([$id_alumno, $id_alumno, $id_actividad, $id_clase]);
         $actividad = $stmt_act->fetch(PDO::FETCH_ASSOC);
 
         if (!$actividad || $actividad['permite_entregas'] == 0) {
@@ -63,6 +64,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!is_dir($carpeta_destino)) { mkdir($carpeta_destino, 0777, true); }
             
             $extension = strtolower(pathinfo($archivo['name'], PATHINFO_EXTENSION));
+            // Nunca aceptar archivos que el servidor podría ejecutar
+            if ($extension === '' || preg_match('/^(php\d?|phtml|phar|pht|cgi|pl|py|sh|exe|bat|js|htaccess)$/', $extension)) {
+                header("Location: ../aula_virtual.php?id=" . $id_clase . "&error=" . urlencode("Tipo de archivo no permitido."));
+                exit();
+            }
             $nombre_original = pathinfo($archivo['name'], PATHINFO_FILENAME);
             $nombre_limpio = preg_replace("/[^a-zA-Z0-9_-]/", "_", $nombre_original);
             $nuevo_nombre = "al_" . $id_alumno . "_" . time() . "_" . $nombre_limpio . "." . $extension;

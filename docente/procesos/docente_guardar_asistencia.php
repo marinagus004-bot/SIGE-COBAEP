@@ -6,6 +6,8 @@ if (!isset($_SESSION['id_usuario']) || $_SESSION['rol'] !== 'docente') { header(
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id_clase = (int)$_POST['id_clase'];
+    require_once __DIR__ . '/permisos.php';
+    if (!docente_dueno_clase($pdo, $id_clase)) docente_denegar(false);
     $fecha_asistencia = $_POST['fecha_asistencia'];
     $asistencias = isset($_POST['asistencia']) ? $_POST['asistencia'] : [];
 

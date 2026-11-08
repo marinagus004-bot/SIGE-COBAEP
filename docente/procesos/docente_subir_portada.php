@@ -10,6 +10,8 @@ if (!isset($_SESSION['id_usuario']) || $_SESSION['rol'] !== 'docente') {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id_clase = isset($_POST['id_clase']) ? (int)$_POST['id_clase'] : 0;
+    require_once __DIR__ . '/permisos.php';
+    if (!docente_dueno_clase($pdo, $id_clase)) docente_denegar(false);
     $id_materia = isset($_POST['id_materia']) ? (int)$_POST['id_materia'] : 0;
     $id_grupo = isset($_POST['id_grupo']) ? (int)$_POST['id_grupo'] : 0;
 

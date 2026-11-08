@@ -56,6 +56,31 @@ try {
     $stmtClases->execute([$id_alumno]);
     $actividades = $stmtClases->fetchColumn();
 
+    // 4. Aviso más reciente (generado con datos reales del sistema)
+    require_once __DIR__ . '/includes/avisos_data.php';
+    $avisos_recientes = obtener_avisos_estudiante($pdo, (int)$id_alumno, 2);
+
+    // 5. Clases de hoy según el horario que el docente capturó en su aula virtual
+    $dia_hoy = (int)date('N'); // 1 = Lunes ... 7 = Domingo
+    $clases_hoy = [];
+    try {
+        $stmtHoy = $pdo->prepare("
+            SELECT hc.hora_inicio, hc.hora_fin, m.nombre_materia, c.id_clase,
+                   CONCAT(ma.nombre, ' ', ma.apellido_paterno) AS docente
+            FROM HORARIOS_CLASES hc
+            INNER JOIN CLASES_REGULARES c ON c.id_clase = hc.id_clase AND c.estatus = 'Activa'
+            INNER JOIN CLASE_REGULAR_ALUMNO cra ON cra.id_clase = c.id_clase AND cra.id_alumno = ? AND cra.acceso = 1
+            INNER JOIN MATERIAS m ON m.id_materia = c.id_materia
+            LEFT JOIN MAESTROS ma ON ma.id_maestro = c.id_maestro
+            WHERE hc.dia_semana = ? AND hc.hora_fin >= CURTIME()
+            ORDER BY hc.hora_inicio
+        ");
+        $stmtHoy->execute([$id_alumno, $dia_hoy]);
+        $clases_hoy = $stmtHoy->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log('Clases de hoy: ' . $e->getMessage());
+    }
+
 } catch (PDOException $e) {
     die("Error al cargar datos del panel: " . $e->getMessage());
 }
@@ -222,22 +247,39 @@ try {
                     <h2 style="margin:0; font-size:1rem; color:#0f172a;"><i class="fas fa-bullhorn" style="color:#059669; margin-right:8px;"></i> Avisos Recientes</h2>
                     <a href="avisos.php" style="color:#475569; text-decoration:none; font-size:0.75rem; font-weight:600; background:#f8fafc; padding:4px 10px; border-radius:6px; border:1px solid #e2e8f0;" onclick="event.stopPropagation();">Ver todos</a>
                 </div>
+                <?php if (empty($avisos_recientes)): ?>
                 <div>
-                    <h3 style="margin:0 0 4px 0; font-size:0.95rem; color:#1e293b;">Bienvenido a la nueva plataforma institucional del Plantel 27.</h3>
-                    <p style="margin:0 0 8px 0; font-size:0.85rem; color:#64748b;">Por el momento, tu horario de clases de este semestre se encuentra en proceso de validación.</p>
-                    <span style="font-size:0.7rem; color:#94a3b8; font-weight:600;"><i class="fas fa-circle" style="font-size:5px; vertical-align:middle; margin-right:4px; color:#cbd5e1;"></i> Hace 1 día</span>
+                    <h3 style="margin:0 0 4px 0; font-size:0.95rem; color:#1e293b;">Bienvenido a la plataforma institucional del Plantel 27.</h3>
+                    <p style="margin:0; font-size:0.85rem; color:#64748b;">No tienes avisos nuevos. Aquí verás las actividades que publiquen tus docentes y otras novedades.</p>
                 </div>
+                <?php else: foreach ($avisos_recientes as $i => $av): ?>
+                <div style="<?php echo $i > 0 ? 'border-top:1px solid #f1f5f9; padding-top:0.7rem; margin-top:0.7rem;' : ''; ?>">
+                    <h3 style="margin:0 0 4px 0; font-size:0.95rem; color:#1e293b;"><?php echo htmlspecialchars($av['titulo']); ?></h3>
+                    <p style="margin:0 0 8px 0; font-size:0.85rem; color:#64748b;"><?php echo htmlspecialchars(mb_strimwidth($av['texto'], 0, 160, '…')); ?></p>
+                    <span style="font-size:0.7rem; color:#94a3b8; font-weight:600;"><i class="fas fa-circle" style="font-size:5px; vertical-align:middle; margin-right:4px; color:#cbd5e1;"></i> <?php echo tiempo_relativo($av['fecha']); ?></span>
+                </div>
+                <?php endforeach; endif; ?>
             </div>
 
             <div class="bottom-split">
                 <!-- Horario -->
                 <div class="clases-card" style="cursor: pointer;" onclick="window.location.href='horario_clases.php'">
                     <h2 style="margin:0 0 0.8rem 0; font-size:1rem; color:#0f172a;"><i class="far fa-calendar-alt" style="color:#3b82f6; margin-right:8px;"></i> Próximas Clases</h2>
+                    <?php if (empty($clases_hoy)): ?>
                     <div style="background:#f8fafc; border:1px dashed #cbd5e1; border-radius:10px; padding:1.5rem 1rem; text-align:center;">
                         <i class="far fa-calendar" style="font-size:2rem; color:#94a3b8; margin-bottom:0.5rem;"></i>
-                        <strong style="display:block; font-size:0.9rem; color:#475569; margin-bottom:2px;">No hay clases programadas para hoy.</strong>
+                        <strong style="display:block; font-size:0.9rem; color:#475569; margin-bottom:2px;">No tienes más clases programadas para hoy.</strong>
                         <p style="margin:0; font-size:0.8rem; color:#64748b;">¡Disfruta tu día y sigue aprovechando al máximo!</p>
                     </div>
+                    <?php else: foreach ($clases_hoy as $ch): ?>
+                    <a href="aula_virtual.php?id=<?php echo (int)$ch['id_clase']; ?>" onclick="event.stopPropagation();" style="display:flex; gap:12px; align-items:center; padding:0.6rem 0; border-bottom:1px solid #f1f5f9; text-decoration:none; color:inherit;">
+                        <div style="background:#eff6ff; color:#2563eb; border-radius:8px; padding:6px 8px; font-size:0.75rem; font-weight:700; white-space:nowrap;"><?php echo date('h:i a', strtotime($ch['hora_inicio'])); ?></div>
+                        <div>
+                            <strong style="display:block; font-size:0.88rem; color:#1e293b;"><?php echo htmlspecialchars($ch['nombre_materia']); ?></strong>
+                            <span style="font-size:0.75rem; color:#64748b;">Hasta <?php echo date('h:i a', strtotime($ch['hora_fin'])); ?><?php echo $ch['docente'] ? ' · ' . htmlspecialchars($ch['docente']) : ''; ?></span>
+                        </div>
+                    </a>
+                    <?php endforeach; endif; ?>
                 </div>
 
                 <!-- Conducta -->

@@ -55,7 +55,7 @@ try {
                 <a href="mis_grupos.php" class="nav-item"><i class="fas fa-users-rectangle"></i><span>Mis Grupos</span></a>
                 
                 <!-- NUEVO ENLACE AL HORARIO -->
-                <a href="mi_horario.php" class="nav-item active"><i class="far fa-calendar-alt"></i><span>Mi Horario</span></a>
+                <a href="horario.php" class="nav-item active"><i class="far fa-calendar-alt"></i><span>Mi Horario</span></a>
 
                 <span class="nav-heading">Evaluación</span>
                 <a href="regularizaciones.php" class="nav-item"><i class="fas fa-book-open-reader"></i><span>Regularizaciones</span></a>

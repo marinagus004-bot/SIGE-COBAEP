@@ -11,6 +11,8 @@ if (!isset($_SESSION['id_usuario']) || $_SESSION['rol'] !== 'docente') {
 
 $qr_crudo = isset($_POST['id_alumno']) ? $_POST['id_alumno'] : '';
 $id_clase = isset($_POST['id_clase']) ? (int)$_POST['id_clase'] : 0;
+require_once __DIR__ . '/permisos.php';
+if (!docente_dueno_clase($pdo, $id_clase)) docente_denegar(true);
 $fecha = isset($_POST['fecha']) ? trim($_POST['fecha']) : date('Y-m-d');
 
 if (empty($qr_crudo) || $id_clase === 0) {
@@ -44,7 +46,7 @@ try {
     }
 
     // 3. Verificamos en "asistencias_clases" con la columna "fecha"
-    $stmtCheck = $pdo->prepare("SELECT id_asistencia FROM asistencias_clases WHERE id_clase = ? AND id_alumno = ? AND fecha = ?");
+    $stmtCheck = $pdo->prepare("SELECT id_asistencia_clase FROM asistencias_clases WHERE id_clase = ? AND id_alumno = ? AND fecha = ?");
     $stmtCheck->execute([$id_clase, $id_alumno, $fecha]);
     
     if ($stmtCheck->fetchColumn()) {

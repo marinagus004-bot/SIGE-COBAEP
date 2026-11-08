@@ -80,20 +80,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit();
         } else {
             // NO TIENE REGISTROS HOY: MARCAR ENTRADA
-            $hora_actual = date('H:i:s');$estatus_asistencia = 'Puntual';
+            $hora_actual = date('H:i:s');
+            $estatus_asistencia = 'Puntual';
 
-            // Lógica de Retardos incluyendo Vespertino
-            if ($alumno['turno'] === 'Matutino' && $hora_actual > '07:10:00') {$estatus_asistencia = 'Retardo';
-            } elseif ($alumno['turno'] === 'Intermedio' && $hora_actual > '10:40:00') {$estatus_asistencia = 'Retardo';
-            } elseif ($alumno['turno'] === 'Vespertino' && $hora_actual > '14:10:00') {$estatus_asistencia = 'Retardo'; // Ajusta esta hora según tu plantel
+            // Tolerancia y hora de corte configuradas por turno en HORARIOS_TURNO
+            $stmtTurno = $pdo->prepare("SELECT fin_tolerancia, hora_corte FROM HORARIOS_TURNO WHERE turno = ?");
+            $stmtTurno->execute([$alumno['turno']]);
+            $horario_turno = $stmtTurno->fetch(PDO::FETCH_ASSOC);
+
+            if ($horario_turno) {
+                if ($hora_actual > $horario_turno['hora_corte']) {
+                    $estatus_asistencia = 'Falta';      // Llegó después de la hora de corte
+                } elseif ($hora_actual > $horario_turno['fin_tolerancia']) {
+                    $estatus_asistencia = 'Retardo';    // Llegó después de la tolerancia
+                }
             }
 
             $stmtIn =$pdo->prepare("INSERT INTO ASISTENCIAS (id_alumno, fecha_hora_escaneo, tipo_registro, estatus, id_prefecto) VALUES (?, NOW(), 'Entrada', ?, ?)");
             $stmtIn->execute([$id_alumno, $estatus_asistencia,$id_prefecto]);
             
             // Enviamos un status diferente si es retardo para que pite diferente
-            $status_respuesta = ($estatus_asistencia === 'Retardo') ? 'warning' : 'success';
-            echo json_encode(['status' => $status_respuesta, 'message' => "$estatus_asistencia:$nombre_completo"]);
+            $status_respuesta = ($estatus_asistencia === 'Puntual') ? 'success' : 'warning';
+            echo json_encode(['status' => $status_respuesta, 'message' => "$estatus_asistencia: $nombre_completo"]);
             exit();
         }
 

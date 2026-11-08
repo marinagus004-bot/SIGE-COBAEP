@@ -25,6 +25,26 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    // 1.1 "¿Olvidaste tu contraseña?": las contraseñas las restablece Control Escolar
+    const forgotLink = document.getElementById("forgotLink");
+    if (forgotLink) {
+        forgotLink.addEventListener("click", function (e) {
+            e.preventDefault();
+            const previo = document.getElementById("infoToast");
+            if (previo) previo.remove();
+            const aviso = document.createElement("div");
+            aviso.id = "infoToast";
+            aviso.className = "toast-notification";
+            aviso.style.backgroundColor = "#16a05d";
+            aviso.style.boxShadow = "0 10px 25px rgba(22, 160, 93, 0.3)";
+            aviso.innerHTML = '<i class="fas fa-info-circle" style="font-size: 1.2rem;"></i>' +
+                '<span>Para restablecer tu contraseña acude a Control Escolar con tu credencial. ' +
+                'El personal administrativo puede asignarte una nueva desde el sistema.</span>';
+            document.body.appendChild(aviso);
+            setTimeout(() => aviso.classList.add("hide-toast"), 7000);
+        });
+    }
+
     // 2. Lógica para ocultar el mensaje de error automáticamente (Toast)
     const toast = document.getElementById("errorToast");
     if (toast) {

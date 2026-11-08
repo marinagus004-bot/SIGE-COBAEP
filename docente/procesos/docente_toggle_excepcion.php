@@ -9,6 +9,8 @@ if (!isset($_SESSION['id_usuario']) || $_SESSION['rol'] !== 'docente') {
 }
 
 $id_actividad = isset($_POST['id_actividad']) ? (int)$_POST['id_actividad'] : 0;
+require_once __DIR__ . '/permisos.php';
+if (!docente_dueno_actividad($pdo, $id_actividad)) docente_denegar(true);
 $id_alumno = isset($_POST['id_alumno']) ? (int)$_POST['id_alumno'] : 0;
 $visible = isset($_POST['visible']) ? (int)$_POST['visible'] : 1;
 

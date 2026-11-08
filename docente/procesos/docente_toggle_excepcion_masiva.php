@@ -8,6 +8,8 @@ if (!isset($_SESSION['id_usuario']) || $_SESSION['rol'] !== 'docente') { echo js
 $id_actividad = (int)$_POST['id_actividad'];
 $visible = (int)$_POST['visible'];
 $id_clase = (int)$_POST['id_clase'];
+require_once __DIR__ . '/permisos.php';
+if (!docente_dueno_actividad($pdo, $id_actividad) || !docente_dueno_clase($pdo, $id_clase)) docente_denegar(true);
 
 if ($id_actividad > 0 && $id_clase > 0) {
     try {

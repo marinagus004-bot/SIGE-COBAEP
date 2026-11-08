@@ -5,6 +5,8 @@ date_default_timezone_set('America/Mexico_City');
 
 if (!isset($_SESSION['id_usuario']) || $_SESSION['rol'] !== 'docente') { die("Acceso denegado."); }
 $id_actividad = isset($_GET['id_actividad']) ? (int)$_GET['id_actividad'] : 0;
+require_once __DIR__ . '/procesos/permisos.php';
+if (!docente_dueno_actividad($pdo, $id_actividad)) docente_denegar();
 if ($id_actividad === 0) { die("Actividad no encontrada."); }
 
 try {

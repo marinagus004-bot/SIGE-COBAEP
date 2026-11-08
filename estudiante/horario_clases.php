@@ -38,11 +38,19 @@ try {
 
     // 3. Obtener el archivo de horario de forma segura (Sólo lectura)
     try {
-        $stmtHorario = $pdo->prepare("SELECT horario_archivo FROM ALUMNOS WHERE id_alumno = ?");
+        // El administrador sube el horario por grupo (HORARIOS_MAESTRO); tomamos el más reciente del grupo activo del alumno
+        $stmtHorario = $pdo->prepare("
+            SELECT hm.ruta_pdf
+            FROM GRUPO_ALUMNO ga
+            INNER JOIN HORARIOS_MAESTRO hm ON hm.id_grupo = ga.id_grupo
+            WHERE ga.id_alumno = ? AND ga.fecha_baja IS NULL AND hm.ruta_pdf IS NOT NULL
+            ORDER BY hm.anio DESC, hm.fecha_subida DESC
+            LIMIT 1
+        ");
         $stmtHorario->execute([$id_alumno]);
         $horario_data = $stmtHorario->fetch(PDO::FETCH_ASSOC);
         if ($horario_data) {
-            $mi_horario = $horario_data['horario_archivo'];
+            $mi_horario = $horario_data['ruta_pdf'];
         }
     } catch (PDOException $e) {
         $mi_horario = null;
