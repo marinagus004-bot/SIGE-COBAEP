@@ -70,6 +70,20 @@ try {
     // Fotografía del alumno (credencial virtual)
     agregar_columna($pdo, 'ALUMNOS', 'fotografia', "VARCHAR(255) NULL DEFAULT NULL");
 
+    // Espacios de regularización: ocultar al terminar el periodo (el alumno deja de verlo)
+    agregar_columna($pdo, 'CLASES_REGULARIZACION', 'visible', "TINYINT(1) NOT NULL DEFAULT 1");
+
+    // La asistencia general (QR de Prefectura y eventos automáticos de faltas) no
+    // pertenece a una clase: si id_clase es obligatorio, todos esos registros fallan.
+    $st = $pdo->prepare("SELECT IS_NULLABLE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ASISTENCIAS' AND COLUMN_NAME = 'id_clase'");
+    $st->execute();
+    if ($st->fetchColumn() === 'NO') {
+        $pdo->exec("ALTER TABLE `ASISTENCIAS` MODIFY `id_clase` INT NULL DEFAULT NULL");
+        registrar("➕ ASISTENCIAS.id_clase ahora es opcional");
+    } else {
+        registrar("✔ ASISTENCIAS.id_clase ya es opcional");
+    }
+
     // ---------------------------------------------------------------
     // 2. Tablas nuevas
     // ---------------------------------------------------------------

@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once '../config/database.php';
+require_once __DIR__ . '/includes/campana.php';
 
 // Validar que el usuario haya iniciado sesión y sea estudiante
 if (!isset($_SESSION['id_usuario']) || $_SESSION['rol'] !== 'estudiante') {
@@ -31,7 +32,7 @@ try {
         FROM CLASES_REGULARIZACION cr
         INNER JOIN CLASE_ALUMNO ca ON cr.id_clase = ca.id_clase
         LEFT JOIN MAESTROS m ON cr.id_maestro = m.id_maestro
-        WHERE ca.id_alumno = ? AND cr.estatus = 'Activa'
+        WHERE ca.id_alumno = ? AND cr.estatus = 'Activa' AND cr.visible = 1
         ORDER BY cr.fecha_inicio DESC
     ");
     $stmtClases->execute([$id_alumno]);
@@ -168,6 +169,7 @@ try {
                 <a href="dashboard_estud.php" class="nav-item"><i class="fas fa-home"></i> <span>Inicio</span></a>
                 <a href="mis_asistencias.php" class="nav-item"><i class="far fa-calendar-check"></i> <span>Mis Asistencias</span></a>
                 <a href="horario_clases.php" class="nav-item"><i class="far fa-calendar-alt"></i> <span>Horario de Clases</span></a>
+                <a href="horarios_plantel.php" class="nav-item"><i class="fas fa-calendar-week"></i> <span>Horarios del Plantel</span></a>
                 
                 <span class="nav-heading">Académico</span>
                 <a href="actividades_escolares.php" class="nav-item"><i class="fas fa-book-open"></i> <span>Actividades Escolares</span></a>
@@ -213,6 +215,7 @@ try {
                         <span id="fechaTexto"><?php echo date('d/m/Y, h:i a'); ?></span>
                     </div>
                     
+                    <?php estudiante_campana($pdo); ?>
                     <div class="profile-container">
                         <div class="profile-pill" id="profileBtn">
                             <div class="avatar"><?php echo htmlspecialchars($iniciales); ?></div>
@@ -230,6 +233,12 @@ try {
                     </div>
                 </div>
             </header>
+
+            <?php if (isset($_GET['error'])): ?>
+                <div style="background:#fef2f2;color:#991b1b;border:1px solid #fecaca;padding:12px 16px;border-radius:12px;font-weight:600;font-size:.9rem;">
+                    <i class="fas fa-circle-info"></i> <?php echo htmlspecialchars($_GET['error']); ?>
+                </div>
+            <?php endif; ?>
 
             <!-- GRID DE CLASES INSCRITAS -->
             <section class="clases-section">

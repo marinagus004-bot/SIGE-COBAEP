@@ -299,3 +299,8 @@ body.sidebar-collapsed .collapse-toggle i { transform: rotate(180deg) !important
 .preload-transitions * {
     transition: none !important;
 }
+/* Encabezado compartido: campana con contador y foto del docente */
+a.notification-button { text-decoration: none; }
+.notification-count { position: absolute; top: -5px; right: -5px; min-width: 19px; height: 19px; padding: 0 5px; border-radius: 999px; background: #ef4444; color: #fff; font-size: 0.65rem; font-weight: 800; display: grid; place-items: center; box-shadow: 0 0 0 2px #fff; }
+.profile-avatar.con-foto { padding: 0; overflow: hidden; background: #e2e8f0; }
+.profile-avatar.con-foto img { width: 100%; height: 100%; object-fit: cover; display: block; }

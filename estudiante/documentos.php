@@ -42,7 +42,7 @@ try {
         SELECT ar.titulo, ar.archivo_ruta, ar.fecha_publicacion, c.nombre_materia
         FROM ACTIVIDADES_REGULARIZACION ar
         INNER JOIN CLASE_ALUMNO ca ON ca.id_clase = ar.id_clase AND ca.id_alumno = ?
-        INNER JOIN CLASES_REGULARIZACION c ON c.id_clase = ar.id_clase
+        INNER JOIN CLASES_REGULARIZACION c ON c.id_clase = ar.id_clase AND c.visible = 1
         WHERE ar.archivo_ruta IS NOT NULL AND ar.archivo_ruta <> ''
         ORDER BY ar.fecha_publicacion DESC
     ");

@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once '../config/database.php';
+require_once __DIR__ . '/includes/campana.php';
 
 // Validar que el usuario haya iniciado sesión y sea estudiante
 if (!isset($_SESSION['id_usuario']) || $_SESSION['rol'] !== 'estudiante') {
@@ -55,6 +56,10 @@ try {
     ");
     $stmt_clase->execute([$id_clase]);
     $clase = $stmt_clase->fetch(PDO::FETCH_ASSOC);
+    if (!$clase || (int)$clase['visible'] !== 1) {
+        header("Location: actividades.php?error=" . urlencode('Este curso de regularización ya no está disponible.'));
+        exit();
+    }
 
     // 4. Cargar material: Bloques y Actividades
     $stmt_bloques = $pdo->prepare("SELECT * FROM BLOQUES_REGULARIZACION WHERE id_clase = ? ORDER BY id_bloque ASC");
@@ -271,6 +276,7 @@ if (!empty($clase['imagen_portada'])) {
                 <a href="dashboard_estud.php" class="nav-item"><i class="fas fa-home"></i> <span>Inicio</span></a>
                 <a href="mis_asistencias.php" class="nav-item"><i class="far fa-calendar-check"></i> <span>Mis Asistencias</span></a>
                 <a href="horario_clases.php" class="nav-item"><i class="far fa-calendar-alt"></i> <span>Horario de Clases</span></a>
+                <a href="horarios_plantel.php" class="nav-item"><i class="fas fa-calendar-week"></i> <span>Horarios del Plantel</span></a>
                 
                 <span class="nav-heading">Académico</span>
                 <a href="actividades_escolares.php" class="nav-item"><i class="fas fa-book-open"></i> <span>Actividades Escolares</span></a>
@@ -313,6 +319,7 @@ if (!empty($clase['imagen_portada'])) {
                         <span id="fechaTexto"><?php echo date('d/m/Y, h:i a'); ?></span>
                     </div>
                     
+                    <?php estudiante_campana($pdo); ?>
                     <div class="profile-container">
                         <div class="profile-pill" id="profileBtn">
                             <div class="avatar"><?php echo htmlspecialchars($iniciales); ?></div>
@@ -470,7 +477,21 @@ if (!empty($clase['imagen_portada'])) {
                             <a href="../<?php echo htmlspecialchars($mi_entrega['archivo_ruta']); ?>" target="_blank" class="btn-subir outline">
                                 <i class="fas fa-file"></i> Ver archivo enviado
                             </a>
-                        
+                            <?php if ($mi_entrega['calificacion'] !== null): ?>
+                                <div class="status-entrega status-entregado" style="margin-top: 12px;">
+                                    <i class="fas fa-star"></i> Calificación: <?php echo rtrim(rtrim(number_format((float)$mi_entrega['calificacion'], 1), '0'), '.'); ?> / 10
+                                </div>
+                            <?php elseif ($clase['permitir_entregas'] == 1 && $clase['estatus'] === 'Activa'): ?>
+                                <form action="../procesos/subir_trabajo.php" method="POST" enctype="multipart/form-data" style="margin-top: 14px;">
+                                    <input type="hidden" name="id_clase" value="<?php echo $id_clase; ?>">
+                                    <div class="form-group-upload">
+                                        <label class="upload-label">¿Te equivocaste? Reemplaza tu archivo</label>
+                                        <input type="file" name="archivo_trabajo" required class="input-file">
+                                    </div>
+                                    <button type="submit" class="btn-subir outline"><i class="fas fa-rotate"></i> Reemplazar entrega</button>
+                                </form>
+                            <?php endif; ?>
+
                         <?php else: ?>
                             <?php if ($clase['permitir_entregas'] == 1): ?>
                                 

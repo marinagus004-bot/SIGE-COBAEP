@@ -86,7 +86,7 @@ function obtener_avisos_estudiante(PDO $pdo, int $id_alumno, int $limite = 30): 
         $st = $pdo->prepare("
             SELECT c.id_clase, c.nombre_materia, c.fecha_inicio, c.fecha_fin, ca.fecha_asignacion
             FROM CLASE_ALUMNO ca INNER JOIN CLASES_REGULARIZACION c ON c.id_clase = ca.id_clase
-            WHERE ca.id_alumno = ? AND c.estatus = 'Activa'
+            WHERE ca.id_alumno = ? AND c.estatus = 'Activa' AND c.visible = 1
         ");
         $st->execute([$id_alumno]);
         foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {

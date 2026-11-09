@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once '../config/database.php';
+require_once __DIR__ . '/includes/topbar_docente.php';
 
 if (!isset($_SESSION['id_usuario']) || $_SESSION['rol'] !== 'docente') {
     header("Location: ../login.php");
@@ -21,7 +22,7 @@ try {
 
     $nombre_completo_url = urlencode($maestro['nombre'] . ' ' . $maestro['apellido_paterno']);
     $avatar_por_defecto = "https://ui-avatars.com/api/?name={$nombre_completo_url}&background=005a35&color=fff&size=150&bold=true";
-    $foto_perfil = !empty($maestro['foto_perfil']) ? $maestro['foto_perfil'] : $avatar_por_defecto;
+    $foto_perfil = docente_foto_url($maestro['foto_perfil'] ?? null) ?? $avatar_por_defecto;
 
 } catch (PDOException $e) {
     error_log("Error al cargar perfil: " . $e->getMessage());
@@ -237,6 +238,21 @@ try {
             }
         }
     </style>
+    <style>
+        .alert-perfil-error { background: #fef2f2 !important; color: #991b1b !important; border-color: #fecaca !important; }
+        .foto-ayuda { display: block; margin-top: 6px; color: var(--muted); font-size: 0.78rem; }
+        .seguridad-card { margin-top: 22px; scroll-margin-top: 20px; }
+        .seguridad-titulo { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 18px; }
+        .seguridad-icono { width: 46px; height: 46px; border-radius: 14px; background: #fff6e6; color: #d97706; display: grid; place-items: center; font-size: 1.1rem; flex-shrink: 0; }
+        .seguridad-titulo h3 { margin: 0 0 4px; font-size: 1.05rem; color: var(--ink); }
+        .seguridad-titulo p { margin: 0; color: var(--muted); font-size: 0.85rem; }
+        .campo-password { position: relative; }
+        .campo-password .input-modern { padding-right: 44px; width: 100%; }
+        .ver-password { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); border: none; background: transparent; color: var(--muted); cursor: pointer; padding: 6px; }
+        .ver-password:hover { color: var(--green); }
+        .fuerza { height: 5px; background: #e2e8f0; border-radius: 4px; margin-top: 8px; overflow: hidden; }
+        .fuerza span { display: block; height: 100%; width: 0; transition: .25s; }
+    </style>
 </head>
 
 <body>
@@ -273,6 +289,7 @@ try {
                 <a href="horario.php" class="nav-item">
                     <i class="far fa-calendar-alt"></i><span>Mi Horario</span>
                 </a>
+                <a href="horarios_plantel.php" class="nav-item"><i class="fas fa-calendar-week"></i><span>Horarios del Plantel</span></a>
                 <span class="nav-heading">Evaluación</span>
                 <a href="regularizaciones.php" class="nav-item">
                     <i class="fas fa-book-open-reader"></i><span>Regularizaciones</span>
@@ -309,30 +326,7 @@ try {
                 </div>
             </div>
 
-            <div class="topbar-right">
-                <div class="date-pill">
-                    <i class="far fa-calendar"></i><span id="fechaTexto">Cargando...</span>
-                </div>
-                <button class="notification-button" type="button">
-                    <i class="far fa-bell"></i><span class="notification-dot"></span>
-                </button>
-                
-                <div class="profile-dropdown" style="position: relative;">
-                    <div class="profile" id="btnPerfil" style="cursor: pointer;">
-                        <div class="profile-avatar"><i class="fas fa-chalkboard-user"></i></div>
-                        <div class="profile-info">
-                            <strong><?php echo $nombre_usuario; ?></strong>
-                            <span>Docente</span>
-                        </div>
-                        <i class="fas fa-chevron-down" style="font-size: 12px; color: var(--muted); margin-left: 5px;"></i>
-                    </div>
-                    <div class="dropdown-menu-perfil" id="menuPerfil">
-                        <a href="perfil.php"><i class="fas fa-user-edit"></i> Mi Perfil</a>
-                        <hr style="margin: 0; border: none; border-top: 1px solid var(--line);">
-                        <a href="../logout.php" style="color: #ef4444;"><i class="fas fa-arrow-right-from-bracket"></i> Cerrar Sesión</a>
-                    </div>
-                </div>
-            </div>
+            <?php docente_topbar($pdo); ?>
         </header>
 
         <section class="section">
@@ -340,6 +334,10 @@ try {
                 <?php if(isset($_GET['msg']) && $_GET['msg'] == 'success'): ?>
                     <div class="alert-success">
                         <i class="fas fa-check-circle"></i> Tu perfil se ha actualizado correctamente.
+                    </div>
+                <?php elseif (isset($_GET['msg']) && $_GET['msg'] == 'error'): ?>
+                    <div class="alert-success alert-perfil-error">
+                        <i class="fas fa-exclamation-circle"></i> <?php echo htmlspecialchars($_GET['texto'] ?? 'No se pudieron guardar los cambios.'); ?>
                     </div>
                 <?php endif; ?>
 
@@ -354,11 +352,12 @@ try {
                                 <span>Subir Foto</span>
                             </div>
                         </label>
-                        <input type="file" name="foto_perfil" id="foto" accept="image/png, image/jpeg" style="display: none;">
+                        <input type="file" name="foto_perfil" id="foto" accept="image/png, image/jpeg, image/webp" style="display: none;">
                         
                         <div class="perfil-info-titles">
                             <h2><?php echo htmlspecialchars($maestro['nombre'] . ' ' . $maestro['apellido_paterno'] . ' ' . $maestro['apellido_materno']); ?></h2>
                             <p>Docente - COBAEP Plantel 27</p>
+                            <small class="foto-ayuda"><i class="fas fa-camera"></i> Haz clic en tu foto para cambiarla. También se mostrará arriba, junto a tu nombre.</small>
                         </div>
                     </div>
 
@@ -403,6 +402,55 @@ try {
                     </div>
                 </form>
             </div>
+
+            <!-- SEGURIDAD: CAMBIAR CONTRASEÑA -->
+            <div class="perfil-card seguridad-card" id="seguridad">
+                <div class="seguridad-titulo">
+                    <div class="seguridad-icono"><i class="fas fa-key"></i></div>
+                    <div>
+                        <h3>Seguridad · Cambiar contraseña</h3>
+                        <p>Usa al menos 8 caracteres combinando letras y números. Si olvidaste tu contraseña actual, pide a Control Escolar que la restablezca.</p>
+                    </div>
+                </div>
+
+                <?php if (isset($_GET['pwd'])): ?>
+                    <div class="alert-success <?php echo $_GET['pwd'] === 'ok' ? '' : 'alert-perfil-error'; ?>">
+                        <i class="fas <?php echo $_GET['pwd'] === 'ok' ? 'fa-check-circle' : 'fa-exclamation-circle'; ?>"></i> <?php echo htmlspecialchars($_GET['texto'] ?? ''); ?>
+                    </div>
+                <?php endif; ?>
+
+                <form action="procesos/docente_cambiar_password.php" method="POST" id="formPassword" autocomplete="off">
+                    <div class="form-row">
+                        <div class="form-group full-width">
+                            <label for="password_actual">Contraseña actual:</label>
+                            <div class="campo-password">
+                                <input type="password" name="password_actual" id="password_actual" class="input-modern" required autocomplete="current-password">
+                                <button type="button" class="ver-password" aria-label="Mostrar contraseña"><i class="far fa-eye"></i></button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="password_nueva">Nueva contraseña:</label>
+                            <div class="campo-password">
+                                <input type="password" name="password_nueva" id="password_nueva" class="input-modern" required minlength="8" autocomplete="new-password">
+                                <button type="button" class="ver-password" aria-label="Mostrar contraseña"><i class="far fa-eye"></i></button>
+                            </div>
+                            <div class="fuerza"><span id="barraFuerza"></span></div>
+                            <span class="form-note" id="textoFuerza">Mínimo 8 caracteres, con letras y números.</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="password_confirmar">Confirmar nueva contraseña:</label>
+                            <div class="campo-password">
+                                <input type="password" name="password_confirmar" id="password_confirmar" class="input-modern" required minlength="8" autocomplete="new-password">
+                                <button type="button" class="ver-password" aria-label="Mostrar contraseña"><i class="far fa-eye"></i></button>
+                            </div>
+                            <span class="form-note" id="textoCoincide"></span>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px; text-align: right;">
+                        <button type="submit" class="btn-guardar" id="btnPassword"><i class="fas fa-lock"></i> Cambiar contraseña</button>
+                    </div>
+                </form>
+            </div>
         </section>
     </main>
 
@@ -419,6 +467,31 @@ try {
                 }
                 lector.readAsDataURL(archivo);
             }
+        });
+
+        // ---- Cambiar contraseña: mostrar/ocultar, fuerza y coincidencia ----
+        document.querySelectorAll('.ver-password').forEach(b => b.addEventListener('click', () => {
+            const input = b.previousElementSibling;
+            const ver = input.type === 'password';
+            input.type = ver ? 'text' : 'password';
+            b.querySelector('i').className = ver ? 'far fa-eye-slash' : 'far fa-eye';
+            b.setAttribute('aria-label', ver ? 'Ocultar contraseña' : 'Mostrar contraseña');
+        }));
+        const nueva = document.getElementById('password_nueva'), conf = document.getElementById('password_confirmar');
+        const barra = document.getElementById('barraFuerza'), txtF = document.getElementById('textoFuerza'), txtC = document.getElementById('textoCoincide');
+        function revisar() {
+            const v = nueva.value;
+            let p = 0;
+            if (v.length >= 8) p++; if (/[A-Za-z]/.test(v) && /\d/.test(v)) p++; if (/[A-Z]/.test(v) && /[a-z]/.test(v)) p++; if (/[^A-Za-z0-9]/.test(v) || v.length >= 12) p++;
+            const niveles = [['0%', '#e2e8f0', 'Mínimo 8 caracteres, con letras y números.'], ['30%', '#ef4444', 'Débil'], ['55%', '#f59e0b', 'Aceptable'], ['80%', '#16a05d', 'Buena'], ['100%', '#0f7a45', 'Muy segura']];
+            const n = v ? niveles[Math.max(1, p)] : niveles[0];
+            barra.style.width = n[0]; barra.style.background = n[1]; txtF.textContent = n[2];
+            txtC.textContent = conf.value ? (conf.value === v ? '✔ Las contraseñas coinciden' : '✖ No coinciden') : '';
+            txtC.style.color = conf.value === v ? '#16a05d' : '#dc2626';
+        }
+        nueva.addEventListener('input', revisar); conf.addEventListener('input', revisar);
+        document.getElementById('formPassword').addEventListener('submit', e => {
+            if (nueva.value !== conf.value) { e.preventDefault(); revisar(); conf.focus(); }
         });
     </script>
 </body>

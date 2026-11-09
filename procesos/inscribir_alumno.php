@@ -10,6 +10,12 @@ if (!isset($_SESSION['id_usuario']) || $_SESSION['rol'] !== 'docente') {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id_clase = (int)$_POST['id_clase'];
+
+    require_once __DIR__ . "/../docente/procesos/permisos.php";
+    if (!docente_dueno_regularizacion($pdo, $id_clase)) {
+        header("Location: ../docente/regularizaciones.php?error=" . urlencode("No tienes permiso para modificar este espacio."));
+        exit();
+    }
     $id_alumno = (int)$_POST['id_alumno'];
     $id_asignador = $_SESSION['id_usuario']; // El ID del maestro
     

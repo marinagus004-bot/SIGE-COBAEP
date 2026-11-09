@@ -8,6 +8,8 @@
  *   estudiante_layout_fin();
  */
 
+require_once __DIR__ . '/campana.php';
+
 function estudiante_requerir_sesion(PDO $pdo): array {
     if (session_status() !== PHP_SESSION_ACTIVE) session_start();
     if (!isset($_SESSION['id_usuario']) || $_SESSION['rol'] !== 'estudiante') {
@@ -30,6 +32,7 @@ function estudiante_layout_inicio(string $titulo, string $subtitulo, string $act
             ['dashboard_estud.php', 'fas fa-home', 'Inicio'],
             ['mis_asistencias.php', 'far fa-calendar-check', 'Mis Asistencias'],
             ['horario_clases.php', 'far fa-calendar-alt', 'Horario de Clases'],
+            ['horarios_plantel.php', 'fas fa-calendar-week', 'Horarios del Plantel'],
         ],
         'Académico' => [
             ['actividades_escolares.php', 'fas fa-book-open', 'Actividades Escolares'],
@@ -109,6 +112,7 @@ function estudiante_layout_inicio(string $titulo, string $subtitulo, string $act
                 </div>
                 <div class="topbar-right">
                     <div class="date-pill"><i class="far fa-calendar"></i><span id="fechaTexto"><?php echo date('d/m/Y, h:i a'); ?></span></div>
+                    <?php estudiante_campana($GLOBALS['pdo']); ?>
                     <div class="profile-container">
                         <div class="profile-pill" id="profileBtn">
                             <div class="avatar"><?php echo $iniciales; ?></div>

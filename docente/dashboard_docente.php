@@ -1,6 +1,8 @@
 <?php
 session_start();
 require_once '../config/database.php';
+require_once __DIR__ . '/includes/topbar_docente.php';
+require_once 'includes/avisos_docente.php';
 
 // Validación estricta: Busca el rol 'docente'
 if (!isset($_SESSION['id_usuario']) || $_SESSION['rol'] !== 'docente') {
@@ -15,58 +17,51 @@ $id_docente = $_SESSION['id_usuario'];
 // =======================================================
 // CONSULTAS REALES A LA BASE DE DATOS
 // =======================================================
+date_default_timezone_set('America/Mexico_City');
+$dias_semana = [1 => 'Lunes', 2 => 'Martes', 3 => 'Miércoles', 4 => 'Jueves', 5 => 'Viernes', 6 => 'Sábado', 7 => 'Domingo'];
+$numero_dia_hoy = (int)date('N'); // 1 (Lunes) a 7 (Domingo)
+$nombre_dia_hoy = $dias_semana[$numero_dia_hoy];
+$ahora = time();
+
+$total_grupos = 0;
+$total_alumnos = 0;
+$regularizaciones_activas = 0;
+$clases_semana = [];   // todas las clases de la semana (el menú de días filtra en el navegador)
+$avisos = [];          // avisos y tareas generados con datos reales
+
 try {
-    // 1. Total de grupos asignados al maestro
-    $stmt_grupos = $pdo->prepare("SELECT COUNT(DISTINCT id_grupo) FROM HORARIOS_MAESTRO WHERE id_maestro = ?");
-    $stmt_grupos->execute([$id_docente]);
-    $total_grupos = $stmt_grupos->fetchColumn();
+    // Grupos del docente: asignados por Control Escolar o con horario subido
+    $sql_mis_grupos = "SELECT id_grupo FROM GRUPO_MAESTRO WHERE id_maestro = :d1 UNION SELECT id_grupo FROM HORARIOS_MAESTRO WHERE id_maestro = :d2";
 
-    // 2. Total de alumnos en los grupos de este maestro
-    $stmt_alumnos = $pdo->prepare("
-        SELECT COUNT(DISTINCT ga.id_alumno) 
-        FROM GRUPO_ALUMNO ga
-        INNER JOIN HORARIOS_MAESTRO hm ON ga.id_grupo = hm.id_grupo
-        WHERE hm.id_maestro = ? AND ga.fecha_baja IS NULL
-    ");
-    $stmt_alumnos->execute([$id_docente]);
-    $total_alumnos = $stmt_alumnos->fetchColumn();
+    $st = $pdo->prepare("SELECT COUNT(*) FROM ($sql_mis_grupos) t");
+    $st->execute(['d1' => $id_docente, 'd2' => $id_docente]);
+    $total_grupos = (int)$st->fetchColumn();
 
-    // 3. Regularizaciones activas
-    $stmt_reg = $pdo->prepare("SELECT COUNT(*) FROM CLASES_REGULARIZACION WHERE id_maestro = ? AND estatus = 'Activa'");
-    $stmt_reg->execute([$id_docente]);
-    $regularizaciones_activas = $stmt_reg->fetchColumn();
+    $st = $pdo->prepare("SELECT COUNT(DISTINCT ga.id_alumno) FROM GRUPO_ALUMNO ga WHERE ga.fecha_baja IS NULL AND ga.id_grupo IN ($sql_mis_grupos)");
+    $st->execute(['d1' => $id_docente, 'd2' => $id_docente]);
+    $total_alumnos = (int)$st->fetchColumn();
 
-    // =======================================================
-    // NUEVA CONSULTA: HORARIO INTELIGENTE DEL DÍA
-    // =======================================================
-    date_default_timezone_set('America/Mexico_City');
-    $numero_dia_hoy = date('N'); // 1 (Lunes) a 7 (Domingo)
-    $hora_actual = date('H:i:s');
-    $dias_semana = ['1'=>'Lunes', '2'=>'Martes', '3'=>'Miércoles', '4'=>'Jueves', '5'=>'Viernes', '6'=>'Sábado', '7'=>'Domingo'];
-    $nombre_dia_hoy = $dias_semana[$numero_dia_hoy];
+    $st = $pdo->prepare("SELECT COUNT(*) FROM CLASES_REGULARIZACION WHERE id_maestro = ? AND estatus = 'Activa'");
+    $st->execute([$id_docente]);
+    $regularizaciones_activas = (int)$st->fetchColumn();
 
-    // Busca las clases del maestro programadas para el día de HOY, que aún no han terminado
-    $stmt_clases_hoy = $pdo->prepare("
-        SELECT c.id_clase, c.id_grupo, hc.hora_inicio, hc.hora_fin, m.nombre_materia, g.nombre_grupo, g.semestre, g.turno 
-        FROM horarios_clases hc
-        INNER JOIN clases_regulares c ON hc.id_clase = c.id_clase
-        INNER JOIN materias m ON c.id_materia = m.id_materia
-        INNER JOIN grupos g ON c.id_grupo = g.id_grupo
-        WHERE c.id_maestro = ? 
-          AND c.estatus = 'Activa' 
-          AND hc.dia_semana = ?
-          AND hc.hora_fin >= ? -- Oculta las clases que ya terminaron hoy
-        ORDER BY hc.hora_inicio ASC
-    ");
-    $stmt_clases_hoy->execute([$id_docente, $numero_dia_hoy, $hora_actual]);
-    $clases_de_hoy = $stmt_clases_hoy->fetchAll(PDO::FETCH_ASSOC);
+    // Horario de la semana y avisos (compartido con la campana de las demás páginas)
+    $info_docente = docente_avisos($pdo, (int)$id_docente);
+    $clases_semana = $info_docente['clases_semana'];
+    $avisos = $info_docente['avisos'];
 
 } catch (PDOException $e) {
-    error_log("Error obteniendo estadísticas del docente: " . $e->getMessage());
-    $total_grupos = 0;
-    $total_alumnos = 0;
-    $regularizaciones_activas = 0;
+    error_log("Error obteniendo datos del inicio docente: " . $e->getMessage());
 }
+
+// Días que se muestran en el menú: Lunes a Viernes, y fin de semana solo si hay clases
+$dias_menu = [1, 2, 3, 4, 5];
+foreach ([6, 7] as $d) {
+    if (in_array($d, array_map('intval', array_column($clases_semana, 'dia_semana')), true)) $dias_menu[] = $d;
+}
+$clases_por_dia = array_fill_keys(array_keys($dias_semana), 0);
+foreach ($clases_semana as $c) $clases_por_dia[(int)$c['dia_semana']]++;
+$dia_inicial = in_array($numero_dia_hoy, $dias_menu, true) ? $numero_dia_hoy : 1;
 ?>
 
 <!DOCTYPE html>
@@ -124,44 +119,6 @@ try {
         
         .panel-header h3 i { color: var(--green); }
 
-        /* LISTA DE CLASES (HORARIO DE HOY) */
-        .clase-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: #f8fafc;
-            border: 1px solid var(--line);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 12px;
-            transition: 0.2s ease;
-        }
-        
-        .clase-item:hover {
-            border-color: #d1d5db;
-            background: #ffffff;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
-        }
-
-        .clase-tiempo {
-            display: flex;
-            flex-direction: column;
-            color: var(--muted);
-            font-size: 0.85rem;
-            font-weight: 700;
-            min-width: 100px;
-        }
-        
-        .clase-tiempo span.actual { color: var(--green); }
-
-        .clase-detalles { flex: 1; margin: 0 15px; }
-        .clase-detalles h4 { margin: 0 0 4px 0; color: var(--ink); font-size: 1rem; }
-        .clase-detalles p { margin: 0; color: var(--muted); font-size: 0.8rem; }
-        .clase-detalles span.grupo-badge {
-            background: var(--blue-soft); color: var(--blue);
-            padding: 3px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; margin-left: 5px;
-        }
-
         .btn-asistencia {
             background: var(--green); color: #fff; border: none; padding: 8px 15px; border-radius: 8px;
             font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: 0.2s; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;
@@ -185,11 +142,94 @@ try {
         .aviso-contenido p { margin: 0; color: var(--muted); font-size: 0.75rem; line-height: 1.4; }
         .aviso-fecha { display: block; margin-top: 5px; font-size: 0.7rem; color: #9ca3af; font-weight: 600; }
 
+        /* =========================================================
+           MENÚ DE DÍAS, ESTATUS DE CLASE Y AVISOS EN VIVO
+           ========================================================= */
+        .panel-header { gap: 12px; flex-wrap: wrap; }
+        .dashboard-panels [hidden] { display: none !important; }
+        .reloj-pill { background: var(--green-soft); color: var(--green); padding: 6px 14px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
+
+        .dias-menu { display: grid; grid-template-columns: repeat(var(--dias, 5), minmax(0, 1fr)); gap: 8px; margin-bottom: 18px; }
+        .dia-tab {
+            position: relative; border: 1px solid var(--line); background: #f8fafc; border-radius: 12px;
+            padding: 10px 4px 8px; cursor: pointer; font-family: inherit; color: var(--muted);
+            display: flex; flex-direction: column; align-items: center; gap: 2px; transition: 0.2s;
+        }
+        .dia-tab:hover { border-color: var(--green); color: var(--ink); }
+        .dia-tab .dia-corto { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+        .dia-tab .dia-num { font-size: 1.15rem; font-weight: 800; color: var(--ink); }
+        .dia-tab .dia-count { font-size: 0.68rem; font-weight: 600; }
+        .dia-tab.hoy { border-color: var(--green); }
+        .dia-tab.hoy::after { content: 'HOY'; position: absolute; top: -8px; left: 50%; transform: translateX(-50%); background: var(--green); color: #fff; font-size: 0.58rem; font-weight: 800; padding: 1px 6px; border-radius: 6px; letter-spacing: .05em; }
+        .dia-tab.activo { background: var(--green-900); border-color: var(--green-900); color: #cfe9dc; }
+        .dia-tab.activo .dia-num { color: #fff; }
+        .dia-tab:focus-visible { outline: 3px solid var(--green-bright); outline-offset: 2px; }
+
+        .lista-clases { display: flex; flex-direction: column; gap: 12px; }
+        .clase-item { display: grid; grid-template-columns: 105px minmax(0, 1fr) auto auto; align-items: center; gap: 15px; background: #fff; border: 1px solid var(--line); border-left: 4px solid #cbd5e1; border-radius: 12px; padding: 15px; margin: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .clase-item.en-curso { border-left-color: var(--green); background: linear-gradient(90deg, #f0fbf5, #fff 40%); }
+        .clase-item.proxima { border-left-color: var(--orange); }
+        .clase-item.terminada { opacity: .7; }
+        .clase-tiempo { min-width: 0; }
+        .clase-tiempo .ini { color: var(--ink); font-weight: 800; font-size: 0.88rem; }
+        .clase-tiempo .fin { color: #94a3b8; font-size: 0.75rem; font-weight: 600; margin-top: 2px; }
+        .clase-detalles { margin: 0; min-width: 0; }
+        .clase-detalles h4 { margin: 0 0 6px; color: var(--ink); font-size: 1.02rem; font-weight: 800; }
+        .clase-detalles p { margin: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .grupo-badge { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; }
+        .turno-txt { font-size: 0.75rem; color: #64748b; font-weight: 600; }
+        .lista-ok { font-size: 0.72rem; color: var(--green); font-weight: 700; }
+        .progreso { height: 4px; background: #e2e8f0; border-radius: 4px; margin-top: 8px; overflow: hidden; display: none; }
+        .clase-item.en-curso .progreso { display: block; }
+        .progreso span { display: block; height: 100%; background: var(--green); border-radius: 4px; transition: width .5s; }
+
+        .estatus-clase { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 700; white-space: nowrap; }
+        .estatus-clase.programada { background: #f1f5f9; color: #475569; }
+        .estatus-clase.proxima { background: var(--orange-soft); color: #b45309; }
+        .estatus-clase.en-curso { background: #dcfce7; color: #15803d; }
+        .estatus-clase.en-curso i { animation: latido 1.4s infinite; }
+        .estatus-clase.terminada { background: #f1f5f9; color: #94a3b8; }
+        @keyframes latido { 50% { opacity: .3; } }
+
+        .btn-asistencia { text-decoration: none; padding: 10px 15px; }
+        .vacio-dia { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px 20px; color: var(--muted); background: #f8fafc; border-radius: 12px; border: 1px dashed #cbd5e1; }
+        .vacio-dia .icono { width: 60px; height: 60px; background: #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; font-size: 1.5rem; color: #94a3b8; }
+        .vacio-dia h4 { margin: 0 0 5px; color: var(--ink); font-size: 1rem; }
+        .vacio-dia p { margin: 0; font-size: 0.85rem; }
+
+        /* Avisos */
+        .avisos-body { flex: 1; display: flex; flex-direction: column; max-height: 520px; overflow-y: auto; padding-right: 4px; }
+        .aviso-item { align-items: flex-start; }
+        .aviso-icon.ok { background: var(--green-soft); color: var(--green); }
+        .aviso-item.alerta-clase { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 12px; padding: 12px; margin-bottom: 6px; }
+        .aviso-item.alerta-clase.inminente { background: #fef2f2; border-color: #fecaca; }
+        .aviso-contenido { flex: 1; min-width: 0; }
+        .aviso-accion { display: inline-flex; align-items: center; gap: 5px; margin-top: 8px; font-size: 0.75rem; font-weight: 700; color: var(--green); text-decoration: none; }
+        .aviso-accion:hover { text-decoration: underline; }
+        .contador-avisos { background: #fee2e2; color: #b91c1c; font-size: 0.72rem; font-weight: 800; padding: 3px 9px; border-radius: 999px; }
+        .btn-alertas { border: 1px solid var(--line); background: #fff; color: var(--muted); border-radius: 10px; padding: 6px 10px; font-size: 0.72rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+        .btn-alertas:hover { border-color: var(--green); color: var(--green); }
+
+        .toast-clase { position: fixed; right: 24px; bottom: 24px; max-width: 360px; background: var(--green-900); color: #fff; border-radius: 16px; padding: 16px 18px; box-shadow: var(--shadow-md); display: flex; gap: 12px; align-items: flex-start; transform: translateY(20px); opacity: 0; pointer-events: none; transition: .3s; z-index: 3000; }
+        .toast-clase.show { transform: none; opacity: 1; pointer-events: auto; }
+        .toast-clase i.fa-bell { font-size: 1.2rem; color: var(--green-bright); margin-top: 2px; }
+        .toast-clase strong { display: block; margin-bottom: 3px; }
+        .toast-clase span { font-size: .85rem; color: #cfe9dc; }
+        .toast-clase button { background: none; border: none; color: #cfe9dc; cursor: pointer; margin-left: auto; }
+
+        @media (max-width: 700px) {
+            .clase-item { grid-template-columns: 1fr auto; }
+            .clase-detalles { grid-column: 1 / -1; grid-row: 2; }
+            .estatus-clase { justify-self: end; }
+            .btn-asistencia { grid-column: 1 / -1; justify-content: center; }
+            .dias-menu { gap: 4px; }
+            .dia-tab .dia-count { display: none; }
+        }
+
         @media (max-width: 992px) {
             .dashboard-panels { grid-template-columns: 1fr; }
         }
         @media (max-width: 560px) {
-            .clase-item { flex-direction: column; align-items: flex-start; gap: 12px; }
             .btn-asistencia { width: 100%; justify-content: center; }
         }
     </style>
@@ -230,6 +270,7 @@ try {
                 <a href="horario.php" class="nav-item">
                     <i class="far fa-calendar-alt"></i><span>Mi Horario</span>
                 </a>
+                <a href="horarios_plantel.php" class="nav-item"><i class="fas fa-calendar-week"></i><span>Horarios del Plantel</span></a>
                 <span class="nav-heading">Evaluación</span>
                 <a href="regularizaciones.php" class="nav-item">
                     <i class="fas fa-book-open-reader"></i><span>Regularizaciones</span>
@@ -264,26 +305,7 @@ try {
                     <p>Aquí tienes el resumen de tus grupos y actividades académicas.</p>
                 </div>
             </div>
-            <div class="topbar-right">
-                <div class="date-pill"><i class="far fa-calendar"></i><span id="fechaTexto">Cargando...</span></div>
-                <button class="notification-button" type="button"><i class="far fa-bell"></i><span class="notification-dot"></span></button>
-                
-                <div class="profile-dropdown" style="position: relative;">
-                    <div class="profile" id="btnPerfil" style="cursor: pointer; display: flex; align-items: center; gap: 10px;">
-                        <div class="profile-avatar"><i class="fas fa-chalkboard-user"></i></div>
-                        <div class="profile-info">
-                            <strong><?php echo $nombre_usuario; ?></strong>
-                            <span>Docente</span>
-                        </div>
-                        <i class="fas fa-chevron-down" style="font-size: 12px; color: #666;"></i>
-                    </div>
-                    <div class="dropdown-menu-perfil" id="menuPerfil">
-                        <a href="perfil.php"><i class="fas fa-user-edit"></i> Mi Perfil</a>
-                        <hr style="margin: 0; border: none; border-top: 1px solid #eee;">
-                        <a href="../logout.php" style="color: #dc3545;"><i class="fas fa-arrow-right-from-bracket"></i> Cerrar Sesión</a>
-                    </div>
-                </div>
-            </div>
+            <?php docente_topbar($pdo); ?>
         </header>
 
         <!-- TARJETAS DE ESTADÍSTICAS -->
@@ -342,112 +364,248 @@ try {
             </div>
         </section>
 
-        <!-- NUEVOS PANELES (HORARIO DEL DÍA Y NOTIFICACIONES) -->
+        <!-- PANELES: CLASES DE LA SEMANA Y AVISOS -->
+        <?php
+        $lunes = strtotime('monday this week');
+        $cortos = [1 => 'Lun', 2 => 'Mar', 3 => 'Mié', 4 => 'Jue', 5 => 'Vie', 6 => 'Sáb', 7 => 'Dom'];
+        ?>
         <section class="dashboard-panels">
-            <!-- PANEL 1: CLASES DE HOY -->
+            <!-- PANEL 1: CLASES -->
             <div class="panel-card" style="display: flex; flex-direction: column;">
                 <div class="panel-header">
-                    <h3><i class="fas fa-chalkboard-user"></i> Mis Clases de Hoy</h3>
-                    <span class="badge-turno" style="background: var(--green-soft); color: var(--green); padding: 6px 14px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; box-shadow: 0 2px 4px rgba(22, 160, 93, 0.1);">
-                        <?php echo $nombre_dia_hoy; ?>
-                    </span>
+                    <h3><i class="fas fa-chalkboard-user"></i> <span id="tituloClases">Mis Clases de Hoy</span></h3>
+                    <span class="reloj-pill"><i class="far fa-clock"></i> <span id="relojActual"><?php echo date('h:i a'); ?></span></span>
                 </div>
-                
+
+                <!-- Menú de días de la semana -->
+                <div class="dias-menu" role="tablist" aria-label="Días de la semana" style="--dias: <?php echo count($dias_menu); ?>;">
+                    <?php foreach ($dias_menu as $d): ?>
+                        <button type="button" role="tab" class="dia-tab<?php echo $d === $numero_dia_hoy ? ' hoy' : ''; ?><?php echo $d === $dia_inicial ? ' activo' : ''; ?>"
+                                data-dia="<?php echo $d; ?>" data-nombre="<?php echo $dias_semana[$d]; ?>" aria-selected="<?php echo $d === $dia_inicial ? 'true' : 'false'; ?>">
+                            <span class="dia-corto"><?php echo $cortos[$d]; ?></span>
+                            <span class="dia-num"><?php echo date('j', $lunes + ($d - 1) * 86400); ?></span>
+                            <span class="dia-count"><?php echo $clases_por_dia[$d] ? $clases_por_dia[$d] . ($clases_por_dia[$d] == 1 ? ' clase' : ' clases') : 'Libre'; ?></span>
+                        </button>
+                    <?php endforeach; ?>
+                </div>
+
                 <div class="panel-body" style="flex: 1; display: flex; flex-direction: column;">
-                    <?php if (empty($clases_de_hoy)): ?>
-                        <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px 20px; color: var(--muted); background: #f8fafc; border-radius: 12px; border: 1px dashed #cbd5e1;">
-                            <div style="width: 60px; height: 60px; background: #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 15px;">
-                                <i class="fas fa-mug-hot" style="font-size: 1.5rem; color: #94a3b8;"></i>
-                            </div>
-                            <h4 style="margin: 0 0 5px 0; color: var(--ink); font-size: 1rem;">Día Libre</h4>
-                            <p style="margin: 0; font-size: 0.85rem;">No tienes clases programadas para hoy o ya finalizaron.</p>
-                        </div>
-                    <?php else: ?>
-                        <div style="display: flex; flex-direction: column; gap: 12px;">
-                            <?php foreach ($clases_de_hoy as $clase_hoy): 
-                                $hora_i = date('h:i a', strtotime($clase_hoy['hora_inicio']));
-                                $hora_f = date('h:i a', strtotime($clase_hoy['hora_fin']));
-                            ?>
-                                <!-- TARJETA DE CLASE INDIVIDUAL -->
-                                <div class="clase-item" style="display: flex; align-items: center; justify-content: space-between; background: #ffffff; border: 1px solid var(--line); border-left: 4px solid var(--green); border-radius: 12px; padding: 15px; transition: 0.2s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
-                                    
-                                    <!-- 1. BLOQUE DE HORA -->
-                                    <div class="clase-tiempo" style="min-width: 105px; display: flex; flex-direction: column;">
-                                        <span class="actual" style="color: var(--green); font-weight: 800; font-size: 0.85rem;">
-                                            <i class="fas fa-circle" style="font-size: 8px; margin-right:4px;"></i> <?php echo $hora_i; ?>
-                                        </span>
-                                        <span style="padding-left: 14px; color: #94a3b8; font-size: 0.75rem; margin-top: 2px; font-weight: 600;">
-                                            <?php echo $hora_f; ?>
-                                        </span>
-                                    </div>
-                                    
-                                    <!-- 2. BLOQUE DE MATERIA Y GRUPO -->
-                                    <div class="clase-detalles" style="flex: 1; margin: 0 15px;">
-                                        <h4 style="margin: 0 0 6px 0; color: var(--ink); font-size: 1.05rem; font-weight: 800; letter-spacing: -0.02em;">
-                                            <?php echo htmlspecialchars($clase_hoy['nombre_materia']); ?>
-                                        </h4>
-                                        <p style="margin: 0; display: flex; align-items: center; gap: 8px;">
-                                            <span class="grupo-badge" style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;">
-                                                <i class="fas fa-users" style="margin-right: 4px;"></i> Grupo <?php echo htmlspecialchars($clase_hoy['semestre']) . 'º "' . htmlspecialchars($clase_hoy['nombre_grupo']) . '"'; ?>
-                                            </span>
-                                            <span style="font-size: 0.75rem; color: #64748b; font-weight: 600;">
-                                                <i class="far fa-sun"></i> <?php echo htmlspecialchars($clase_hoy['turno']); ?>
-                                            </span>
-                                        </p>
-                                    </div>
-                                    
-                                    <!-- 3. BOTÓN DE ACCIÓN -->
-                                    <a href="gestionar_aula.php?id_grupo=<?php echo $clase_hoy['id_grupo']; ?>&abrir_lista=<?php echo $clase_hoy['id_clase']; ?>" class="btn-asistencia" style="background: var(--green); color: #fff; border: none; padding: 10px 15px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: 0.2s;">
-                                        <i class="fas fa-clipboard-user"></i> Lista
-                                    </a>
+                    <div class="lista-clases" id="listaClases">
+                        <?php foreach ($clases_semana as $c):
+                            $grupo = $c['semestre'] . 'º "' . $c['nombre_grupo'] . '"'; ?>
+                            <div class="clase-item" data-dia="<?php echo (int)$c['dia_semana']; ?>"
+                                 data-ini="<?php echo substr($c['hora_inicio'], 0, 5); ?>" data-fin="<?php echo substr($c['hora_fin'], 0, 5); ?>"
+                                 data-id="<?php echo (int)$c['id_horario']; ?>"
+                                 data-materia="<?php echo htmlspecialchars($c['nombre_materia'], ENT_QUOTES); ?>"
+                                 data-grupo="<?php echo htmlspecialchars($grupo, ENT_QUOTES); ?>"
+                                 <?php echo (int)$c['dia_semana'] !== $dia_inicial ? 'hidden' : ''; ?>>
+                                <div class="clase-tiempo">
+                                    <div class="ini"><?php echo date('h:i a', strtotime($c['hora_inicio'])); ?></div>
+                                    <div class="fin">a <?php echo date('h:i a', strtotime($c['hora_fin'])); ?></div>
                                 </div>
-                            <?php endforeach; ?>
+                                <div class="clase-detalles">
+                                    <h4><?php echo htmlspecialchars($c['nombre_materia']); ?></h4>
+                                    <p>
+                                        <span class="grupo-badge"><i class="fas fa-users"></i> Grupo <?php echo htmlspecialchars($grupo); ?></span>
+                                        <span class="turno-txt"><i class="far fa-sun"></i> <?php echo htmlspecialchars($c['turno']); ?></span>
+                                        <?php if ((int)$c['dia_semana'] === $numero_dia_hoy && (int)$c['lista_hoy'] > 0): ?>
+                                            <span class="lista-ok"><i class="fas fa-check-circle"></i> Lista tomada</span>
+                                        <?php endif; ?>
+                                    </p>
+                                    <div class="progreso" aria-hidden="true"><span></span></div>
+                                </div>
+                                <span class="estatus-clase programada"><i class="far fa-calendar"></i> <span class="txt">Programada</span></span>
+                                <a href="gestionar_aula.php?id_grupo=<?php echo (int)$c['id_grupo']; ?>&abrir_lista=<?php echo (int)$c['id_clase']; ?>" class="btn-asistencia">
+                                    <i class="fas fa-clipboard-user"></i> Lista
+                                </a>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+
+                    <div class="vacio-dia" id="vacioDia" <?php echo $clases_por_dia[$dia_inicial] ? 'hidden' : ''; ?>>
+                        <div class="icono"><i class="fas fa-mug-hot"></i></div>
+                        <h4>Día Libre</h4>
+                        <p id="vacioTexto">No tienes clases programadas para este día.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANEL 2: AVISOS Y TAREAS -->
+            <div class="panel-card" id="panelAvisos" style="display: flex; flex-direction: column;">
+                <div class="panel-header">
+                    <h3><i class="fas fa-bell"></i> Avisos y Tareas
+                        <?php if ($avisos): ?><span class="contador-avisos"><?php echo count($avisos); ?></span><?php endif; ?>
+                    </h3>
+                    <button type="button" class="btn-alertas" id="btnAlertas" hidden><i class="fas fa-bell"></i> Activar alertas</button>
+                </div>
+                <div class="avisos-body">
+                    <!-- Alerta en vivo de la próxima clase (la llena el script) -->
+                    <div id="alertaClase"></div>
+
+                    <?php foreach ($avisos as $a): ?>
+                        <div class="aviso-item">
+                            <div class="aviso-icon <?php echo $a['tipo']; ?>"><i class="fas <?php echo $a['icono']; ?>"></i></div>
+                            <div class="aviso-contenido">
+                                <h4><?php echo htmlspecialchars($a['titulo']); ?></h4>
+                                <p><?php echo $a['texto']; /* ya escapado al construirlo */ ?></p>
+                                <span class="aviso-fecha"><?php echo htmlspecialchars($a['meta']); ?></span>
+                                <?php if ($a['enlace']): ?>
+                                    <a class="aviso-accion" href="<?php echo htmlspecialchars($a['enlace']); ?>"><?php echo htmlspecialchars($a['accion'] ?? 'Ver'); ?> <i class="fas fa-arrow-right"></i></a>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+
+                    <?php if (!$avisos): ?>
+                        <div class="aviso-item" id="todoAlDia">
+                            <div class="aviso-icon ok"><i class="fas fa-check"></i></div>
+                            <div class="aviso-contenido">
+                                <h4>¡Todo al día!</h4>
+                                <p>No tienes trabajos por revisar, actividades por cerrar ni listas pendientes.</p>
+                                <span class="aviso-fecha">Actualizado <?php echo date('h:i a'); ?> • Sistema</span>
+                            </div>
                         </div>
                     <?php endif; ?>
                 </div>
             </div>
-
-            <!-- PANEL 2: NOTIFICACIONES Y TAREAS -->
-            <div class="panel-card" style="display: flex; flex-direction: column;">
-                <div class="panel-header">
-                    <h3><i class="fas fa-bell"></i> Avisos y Tareas</h3>
-                </div>
-                <div class="panel-body" style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
-                    <!-- Aviso Urgente -->
-                    <div class="aviso-item">
-                        <div class="aviso-icon urgente"><i class="fas fa-exclamation-triangle"></i></div>
-                        <div class="aviso-contenido">
-                            <h4>Cierre de Actas Parciales</h4>
-                            <p>El sistema para subir calificaciones del 1er Parcial se cerrará este viernes a las 23:59 hrs.</p>
-                            <span class="aviso-fecha">Hace 2 horas • Dirección Académica</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Notificación de Tareas -->
-                    <div class="aviso-item">
-                        <div class="aviso-icon tareas"><i class="fas fa-file-alt"></i></div>
-                        <div class="aviso-contenido">
-                            <h4>Trabajos pendientes por revisar</h4>
-                            <p>Tienes <strong>5</strong> entregas nuevas de alumnos en el espacio de Regularización "Taller de Lectura".</p>
-                            <span class="aviso-fecha">Hace 5 horas • Sistema</span>
-                        </div>
-                    </div>
-
-                    <!-- Información General -->
-                    <div class="aviso-item" style="border-bottom: none; padding-bottom: 0;">
-                        <div class="aviso-icon info"><i class="fas fa-info"></i></div>
-                        <div class="aviso-contenido">
-                            <h4>Reunión de Academia</h4>
-                            <p>Se les recuerda a los docentes del área de Ciencias Exactas la reunión programada para el día miércoles.</p>
-                            <span class="aviso-fecha">Ayer • Prefectura</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </section>
+
+        <div class="toast-clase" id="toastClase" role="alert">
+            <i class="fas fa-bell"></i>
+            <div><strong id="toastTitulo"></strong><span id="toastTexto"></span></div>
+            <button type="button" id="toastCerrar" aria-label="Cerrar aviso"><i class="fas fa-times"></i></button>
+        </div>
 
     </main>
 
     <script src="dashboard_maestro.js"></script>
+    <script>
+    (function () {
+        const HOY = <?php echo $numero_dia_hoy; ?>;
+        // Diferencia entre el reloj del servidor (hora de México) y el del navegador
+        const desfase = <?php echo $ahora * 1000; ?> - Date.now();
+        const ahora = () => new Date(Date.now() + desfase);
+        const mins = hhmm => { const [h, m] = hhmm.split(':').map(Number); return h * 60 + m; };
+        const fmtDur = m => m < 60 ? m + ' min' : Math.floor(m / 60) + ' h' + (m % 60 ? ' ' + (m % 60) + ' min' : '');
+        const fmtHora = d => d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true });
+
+        const items = [...document.querySelectorAll('.clase-item')];
+        const tabs = [...document.querySelectorAll('.dia-tab')];
+        let diaActivo = Number(document.querySelector('.dia-tab.activo')?.dataset.dia || HOY);
+
+        // ---------- Menú de días ----------
+        function mostrarDia(dia) {
+            diaActivo = dia;
+            tabs.forEach(t => { const on = Number(t.dataset.dia) === dia; t.classList.toggle('activo', on); t.setAttribute('aria-selected', on); });
+            let visibles = 0;
+            items.forEach(it => { const on = Number(it.dataset.dia) === dia; it.hidden = !on; if (on) visibles++; });
+            const nombre = tabs.find(t => Number(t.dataset.dia) === dia)?.dataset.nombre || '';
+            document.getElementById('tituloClases').textContent = dia === HOY ? 'Mis Clases de Hoy' : 'Mis Clases del ' + nombre;
+            document.getElementById('vacioDia').hidden = visibles > 0;
+            document.getElementById('vacioTexto').textContent = dia === HOY
+                ? 'No tienes clases programadas para hoy.'
+                : 'No tienes clases programadas el ' + nombre.toLowerCase() + '.';
+            actualizar();
+        }
+        tabs.forEach(t => t.addEventListener('click', () => mostrarDia(Number(t.dataset.dia))));
+
+        // ---------- Estatus de cada clase ----------
+        function estatus(it, n, minutoAhora) {
+            const dia = Number(it.dataset.dia), ini = mins(it.dataset.ini), fin = mins(it.dataset.fin);
+            if (dia !== HOY) return dia < HOY ? ['terminada', 'fa-check', 'Impartida esta semana'] : ['programada', 'fa-calendar', 'Programada'];
+            if (minutoAhora < ini) {
+                const falta = ini - minutoAhora;
+                return [falta <= 60 ? 'proxima' : 'programada', 'fa-hourglass-start', 'Inicia en ' + fmtDur(falta)];
+            }
+            if (minutoAhora < fin) return ['en-curso', 'fa-circle', 'En curso · termina en ' + fmtDur(fin - minutoAhora)];
+            return ['terminada', 'fa-check', 'Terminada'];
+        }
+
+        function actualizar() {
+            const d = ahora();
+            const m = d.getHours() * 60 + d.getMinutes();
+            document.getElementById('relojActual').textContent = fmtHora(d);
+            items.forEach(it => {
+                const [clase, icono, texto] = estatus(it, null, m);
+                it.classList.remove('en-curso', 'proxima', 'terminada');
+                if (clase !== 'programada') it.classList.add(clase);
+                const badge = it.querySelector('.estatus-clase');
+                badge.className = 'estatus-clase ' + clase;
+                badge.querySelector('i').className = (clase === 'en-curso' ? 'fas ' : 'fas ') + icono;
+                badge.querySelector('.txt').textContent = texto;
+                if (clase === 'en-curso') {
+                    const ini = mins(it.dataset.ini), fin = mins(it.dataset.fin);
+                    it.querySelector('.progreso span').style.width = Math.round((m - ini) / (fin - ini) * 100) + '%';
+                }
+            });
+            alertaProximaClase(m);
+        }
+
+        // ---------- Avisos de la próxima clase (10 y 5 minutos) ----------
+        const caja = document.getElementById('alertaClase');
+        function alertaProximaClase(m) {
+            const hoy = items.filter(it => Number(it.dataset.dia) === HOY);
+            const enCurso = hoy.find(it => m >= mins(it.dataset.ini) && m < mins(it.dataset.fin));
+            const proxima = hoy.filter(it => mins(it.dataset.ini) > m).sort((a, b) => mins(a.dataset.ini) - mins(b.dataset.ini))[0];
+            let html = '';
+            if (proxima) {
+                const falta = mins(proxima.dataset.ini) - m;
+                if (falta <= 60) {
+                    const inminente = falta <= 10;
+                    html += tarjeta(inminente ? 'alerta-clase inminente' : 'alerta-clase', inminente ? 'urgente' : 'tareas', 'fa-person-chalkboard',
+                        inminente ? '¡Tu clase está por iniciar!' : 'Próxima clase',
+                        'Faltan <strong>' + falta + ' min</strong> para ' + esc(proxima.dataset.materia) + ' · Grupo ' + esc(proxima.dataset.grupo) + '.',
+                        'Inicia a las ' + proxima.querySelector('.ini').textContent + ' • Horario');
+                    if (falta <= 10) notificar(proxima, falta <= 5 ? 5 : 10, falta);
+                }
+            }
+            if (enCurso) {
+                html += tarjeta('alerta-clase', 'ok', 'fa-chalkboard', 'Clase en curso',
+                    esc(enCurso.dataset.materia) + ' · Grupo ' + esc(enCurso.dataset.grupo) + '. Termina en <strong>' + fmtDur(mins(enCurso.dataset.fin) - m) + '</strong>.',
+                    'No olvides pasar lista • Horario');
+            }
+            caja.innerHTML = html;
+            const todo = document.getElementById('todoAlDia');
+            if (todo) todo.hidden = html !== '';
+        }
+        function esc(t) { const s = document.createElement('span'); s.textContent = t; return s.innerHTML; }
+        function tarjeta(clase, tipo, icono, titulo, texto, meta) {
+            return '<div class="aviso-item ' + clase + '"><div class="aviso-icon ' + tipo + '"><i class="fas ' + icono + '"></i></div>' +
+                   '<div class="aviso-contenido"><h4>' + titulo + '</h4><p>' + texto + '</p><span class="aviso-fecha">' + meta + '</span></div></div>';
+        }
+
+        // Toast (y notificación del navegador si se permitió) una sola vez por umbral
+        const toast = document.getElementById('toastClase');
+        document.getElementById('toastCerrar').addEventListener('click', () => toast.classList.remove('show'));
+        function notificar(it, umbral, falta) {
+            const clave = 'aviso-clase-' + it.dataset.id + '-' + ahora().toDateString() + '-' + umbral;
+            try { if (sessionStorage.getItem(clave)) return; sessionStorage.setItem(clave, '1'); } catch (e) {}
+            const titulo = 'Tu clase inicia en ' + falta + ' min';
+            const texto = it.dataset.materia + ' · Grupo ' + it.dataset.grupo;
+            document.getElementById('toastTitulo').textContent = titulo;
+            document.getElementById('toastTexto').textContent = texto;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 12000);
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification(titulo, { body: texto, icon: '../img/LogoCobaep.png' });
+            }
+        }
+        const btnAlertas = document.getElementById('btnAlertas');
+        if ('Notification' in window && Notification.permission === 'default') {
+            btnAlertas.hidden = false;
+            btnAlertas.addEventListener('click', () => Notification.requestPermission().then(p => {
+                btnAlertas.hidden = true;
+                if (p === 'granted') new Notification('Alertas activadas', { body: 'Te avisaremos 10 y 5 minutos antes de cada clase.', icon: '../img/LogoCobaep.png' });
+            }));
+        }
+
+        // Campana del encabezado: lleva a los avisos
+        const campana = document.querySelector('.notification-button');
+        if (campana) campana.addEventListener('click', () => document.getElementById('panelAvisos').scrollIntoView({ behavior: 'smooth', block: 'start' }));
+
+        mostrarDia(diaActivo);
+        setInterval(actualizar, 20000);
+    })();
+    </script>
 </body>
 </html>

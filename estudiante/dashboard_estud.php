@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once '../config/database.php';
+require_once __DIR__ . '/includes/campana.php';
 
 // Validar que el usuario haya iniciado sesión y sea estudiante
 if (!isset($_SESSION['id_usuario']) || $_SESSION['rol'] !== 'estudiante') {
@@ -123,6 +124,7 @@ try {
                 <!-- Enlace de 'Mi Perfil' removido de aquí como sugeriste -->
                 <a href="mis_asistencias.php" class="nav-item"><i class="far fa-calendar-check"></i> <span>Mis Asistencias</span></a>
                 <a href="horario_clases.php" class="nav-item"><i class="far fa-calendar-alt"></i> <span>Horario de Clases</span></a>
+                <a href="horarios_plantel.php" class="nav-item"><i class="fas fa-calendar-week"></i> <span>Horarios del Plantel</span></a>
 
                 <span class="nav-heading">Académico</span>
                 <a href="actividades_escolares.php" class="nav-item"><i class="fas fa-book-open"></i> <span>Actividades Escolares</span></a>
@@ -165,6 +167,7 @@ try {
                     </div>
                     
                     <!-- NUEVO CONTENEDOR DE PERFIL CON DROPDOWN -->
+                    <?php estudiante_campana($pdo); ?>
                     <div class="profile-container">
                         <div class="profile-pill" id="profileBtn">
                             <div class="avatar"><?php echo htmlspecialchars($iniciales); ?></div>

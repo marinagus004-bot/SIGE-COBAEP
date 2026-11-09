@@ -46,7 +46,7 @@ try {
     }
 
     // 3. Verificamos en "asistencias_clases" con la columna "fecha"
-    $stmtCheck = $pdo->prepare("SELECT id_asistencia_clase FROM asistencias_clases WHERE id_clase = ? AND id_alumno = ? AND fecha = ?");
+    $stmtCheck = $pdo->prepare("SELECT id_asistencia FROM asistencias_clases WHERE id_clase = ? AND id_alumno = ? AND fecha = ?");
     $stmtCheck->execute([$id_clase, $id_alumno, $fecha]);
     
     if ($stmtCheck->fetchColumn()) {

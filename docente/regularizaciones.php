@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once '../config/database.php';
+require_once __DIR__ . '/includes/topbar_docente.php';
 
 // Validación estricta: Solo docentes
 if (!isset($_SESSION['id_usuario']) || $_SESSION['rol'] !== 'docente') {
@@ -77,6 +78,7 @@ try {
                     <span>Mi Horario</span>
                 
                 </a>
+                    <a href="horarios_plantel.php" class="nav-item"><i class="fas fa-calendar-week"></i><span>Horarios del Plantel</span></a>
 
                 <span class="nav-heading">Evaluación</span>
                 <!-- MARCADO COMO ACTIVO -->
@@ -119,15 +121,7 @@ try {
                     <p>Crea y gestiona las clases para recuperación de alumnos.</p>
                 </div>
             </div>
-            <div class="topbar-right">
-                <div class="profile">
-                    <div class="profile-avatar"><i class="fas fa-chalkboard-user"></i></div>
-                    <div class="profile-info">
-                        <strong><?php echo $nombre_usuario; ?></strong>
-                        <span>Docente</span>
-                    </div>
-                </div>
-            </div>
+            <?php docente_topbar($pdo); ?>
         </header>
 
         <!-- ALERTAS DE ÉXITO O ERROR -->
@@ -180,6 +174,9 @@ try {
                                 <span class="badge-estatus <?php echo strtolower($clase['estatus']); ?>">
                                     <?php echo htmlspecialchars($clase['estatus']); ?>
                                 </span>
+                                <?php if ((int)($clase['visible'] ?? 1) === 0): ?>
+                                    <span class="badge-estatus" style="left:auto; right:12px; background:#fef3c7; color:#92400e;"><i class="fas fa-eye-slash"></i> Oculto</span>
+                                <?php endif; ?>
                             </div>
                             <div class="clase-info">
                                 <h3><?php echo htmlspecialchars($clase['nombre_materia']); ?></h3>

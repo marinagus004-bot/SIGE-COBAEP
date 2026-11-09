@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once '../config/database.php';
+require_once __DIR__ . '/includes/topbar_docente.php';
 
 if (!isset($_SESSION['id_usuario']) || $_SESSION['rol'] !== 'docente') {
     header("Location: ../login.php");
@@ -56,6 +57,7 @@ try {
                 
                 <!-- NUEVO ENLACE AL HORARIO -->
                 <a href="horario.php" class="nav-item active"><i class="far fa-calendar-alt"></i><span>Mi Horario</span></a>
+                <a href="horarios_plantel.php" class="nav-item"><i class="fas fa-calendar-week"></i><span>Horarios del Plantel</span></a>
 
                 <span class="nav-heading">Evaluación</span>
                 <a href="regularizaciones.php" class="nav-item"><i class="fas fa-book-open-reader"></i><span>Regularizaciones</span></a>
@@ -89,6 +91,7 @@ try {
                     <p>Sube y consulta tu carga horaria de este semestre.</p>
                 </div>
             </div>
+            <?php docente_topbar($pdo); ?>
         </header>
 
         <div class="layout-horario">

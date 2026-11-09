@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once '../config/database.php';
+require_once __DIR__ . '/includes/topbar_docente.php';
 
 if (!isset($_SESSION['id_usuario']) || $_SESSION['rol'] !== 'docente') {
     header("Location: ../login.php");
@@ -251,6 +252,7 @@ try {
                 <a href="horario.php" class="nav-item">
                     <i class="far fa-calendar-alt"></i><span>Mi Horario</span>
                 </a>
+                <a href="horarios_plantel.php" class="nav-item"><i class="fas fa-calendar-week"></i><span>Horarios del Plantel</span></a>
                 <span class="nav-heading">Evaluación</span>
                 <a href="regularizaciones.php" class="nav-item">
                     <i class="fas fa-book-open-reader"></i><span>Regularizaciones</span>
@@ -278,16 +280,7 @@ try {
                     <h1>Panel de Control</h1>
                 </div>
             </div>
-            <div class="topbar-right">
-                <div class="date-pill"><i class="far fa-calendar"></i><span id="fechaTexto"><?php echo date('d/m/Y'); ?></span></div>
-                <div class="profile">
-                    <div class="profile-avatar"><?php echo $iniciales; ?></div>
-                    <div class="profile-info">
-                        <strong><?php echo $nombre_usuario; ?></strong>
-                        <span>Docente</span>
-                    </div>
-                </div>
-            </div>
+            <?php docente_topbar($pdo); ?>
         </header>
 
         <div class="header-aula">

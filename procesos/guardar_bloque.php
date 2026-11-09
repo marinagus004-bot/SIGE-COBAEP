@@ -10,6 +10,12 @@ if (!isset($_SESSION['id_usuario']) || $_SESSION['rol'] !== 'docente') {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id_clase = (int)$_POST['id_clase'];
+
+    require_once __DIR__ . "/../docente/procesos/permisos.php";
+    if (!docente_dueno_regularizacion($pdo, $id_clase)) {
+        header("Location: ../docente/regularizaciones.php?error=" . urlencode("No tienes permiso para modificar este espacio."));
+        exit();
+    }
     $titulo_bloque = trim($_POST['titulo_bloque'] ?? '');
     
     if (empty($titulo_bloque) || empty($id_clase)) {

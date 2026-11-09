@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once '../config/database.php';
+require_once __DIR__ . '/includes/topbar_docente.php';
 
 if (!isset($_SESSION['id_usuario']) || $_SESSION['rol'] !== 'docente') {
     header("Location: ../login.php");
@@ -107,6 +108,7 @@ try {
                 <a href="horario.php" class="nav-item">
                     <i class="far fa-calendar-alt"></i><span>Mi Horario</span>
                 </a>
+                <a href="horarios_plantel.php" class="nav-item"><i class="fas fa-calendar-week"></i><span>Horarios del Plantel</span></a>
 
                 <span class="nav-heading">Evaluación</span>
                 <a href="regularizaciones.php" class="nav-item">
@@ -136,27 +138,7 @@ try {
                     <p>Selecciona un grupo para gestionar sus materias y alumnos.</p>
                 </div>
             </div>
-            <div class="topbar-right">
-                <div class="date-pill"><i class="far fa-calendar"></i><span id="fechaTexto"><?php echo date('d/m/Y'); ?></span></div>
-                <!-- Contenedor del perfil con menú desplegable -->
-                <div class="profile-dropdown" style="position: relative;">
-                    <div class="profile" id="btnPerfil" style="cursor: pointer; display: flex; align-items: center; gap: 10px;">
-                        <div class="profile-avatar"><i class="fas fa-chalkboard-user"></i></div>
-                        <div class="profile-info">
-                            <strong><?php echo $nombre_usuario; ?></strong>
-                            <span>Docente</span>
-                        </div>
-                        <i class="fas fa-chevron-down" style="font-size: 12px; color: #666;"></i>
-                    </div>
-                    
-                    <!-- Menú desplegable oculto por defecto -->
-                    <div class="dropdown-menu-perfil" id="menuPerfil">
-                        <a href="perfil.php"><i class="fas fa-user-edit"></i> Mi Perfil</a>
-                        <hr style="margin: 0; border: none; border-top: 1px solid #eee;">
-                        <a href="../logout.php" style="color: #dc3545;"><i class="fas fa-arrow-right-from-bracket"></i> Cerrar Sesión</a>
-                    </div>
-                </div>
-            </div>
+            <?php docente_topbar($pdo); ?>
         </header>
 
         <section>

@@ -45,6 +45,9 @@ $pagina_actual = basename($_SERVER['PHP_SELF']);
             <a href="reportes.php" class="nav-item <?php echo ($pagina_actual == 'reportes.php') ? 'active' : ''; ?>">
                 <i class="fas fa-chart-column"></i><span>Reportes y Listas</span>
             </a>
+            <a href="horarios_plantel.php" class="nav-item <?php echo ($pagina_actual == 'horarios_plantel.php') ? 'active' : ''; ?>">
+                <i class="fas fa-calendar-week"></i><span>Horarios del Plantel</span>
+            </a>
         </nav>
 
         <div class="sidebar-bottom">

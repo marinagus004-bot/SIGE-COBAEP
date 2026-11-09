@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once '../config/database.php';
+require_once __DIR__ . '/includes/campana.php';
 
 // 1. Validación para el ESTUDIANTE
 if (!isset($_SESSION['id_usuario']) || $_SESSION['rol'] !== 'estudiante') {
@@ -186,6 +187,7 @@ try {
                 <a href="mis_asistencias.php" class="nav-item"><i class="far fa-calendar-check"></i> <span>Mis Asistencias</span></a>
                 
                 <a href="horario_clases.php" class="nav-item active"><i class="far fa-calendar-alt"></i> <span>Horario de Clases</span></a>
+                <a href="horarios_plantel.php" class="nav-item"><i class="fas fa-calendar-week"></i> <span>Horarios del Plantel</span></a>
                 
                 <span class="nav-heading">Académico</span>
                 <a href="actividades_escolares.php" class="nav-item"><i class="fas fa-book-open"></i> <span>Actividades Escolares</span></a>
@@ -227,6 +229,7 @@ try {
                         <span id="fechaTexto"><?php echo date('d/m/Y, h:i a'); ?></span>
                     </div>
                     
+                    <?php estudiante_campana($pdo); ?>
                     <div class="profile-container">
                         <div class="profile-pill" id="profileBtn">
                             <div class="avatar"><?php echo htmlspecialchars($iniciales); ?></div>

@@ -1,2 +1,5 @@
 .DS_Store
 *.code-workspace
+
+# Respaldo con datos personales de alumnos: no subir a GitHub
+database/Sistema_SIGE_COBAEP_completo.sql

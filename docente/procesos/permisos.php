@@ -32,6 +32,12 @@ function docente_dueno_entrega(PDO $pdo, int $id_entrega): bool {
     return (bool)$st->fetchColumn();
 }
 
+function docente_dueno_regularizacion(PDO $pdo, int $id_clase): bool {
+    $st = $pdo->prepare("SELECT 1 FROM CLASES_REGULARIZACION WHERE id_clase = ? AND id_maestro = ?");
+    $st->execute([$id_clase, (int)$_SESSION['id_usuario']]);
+    return (bool)$st->fetchColumn();
+}
+
 /** Corta la petición: responde JSON (para peticiones AJAX) o regresa a "Mis grupos". */
 function docente_denegar(bool $json = false): void {
     $msg = 'No tienes permiso para modificar esta clase.';
